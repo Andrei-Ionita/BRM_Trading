@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRM Day-Ahead Market Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .flag {
+            font-size: 1.5rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card h3 {
+            color: #2c3e50;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #3498db;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-ok {
+            background: #27ae60;
+            box-shadow: 0 0 10px rgba(39, 174, 96, 0.5);
+        }
+
+        .status-error {
+            background: #e74c3c;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+
+        .auctions-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .last-update {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .auctions-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .auction-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .auction-card:hover {
+            background: #e3f2fd;
+            transform: translateX(5px);
+            box-shadow: 0 4px 20px rgba(52, 152, 219, 0.2);
+        }
+
+        .auction-card.open {
+            border-left-color: #27ae60;
+        }
+
+        .auction-card.completed {
+            border-left-color: #f39c12;
+        }
+
+        .auction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .auction-id {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .auction-state {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .state-open {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .state-completed {
+            background: #fef9e7;
+            color: #f39c12;
+        }
+
+        .auction-name {
+            color: #7f8c8d;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .auction-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 1rem;
+        }
+
+        .auction-stat {
+            text-align: center;
+        }
+
+        .auction-stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #3498db;
+        }
+
+        .auction-stat-label {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #7f8c8d;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid #fcc;
+        }
+
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .refresh-dot {
+            width: 8px;
+            height: 8px;
+            background: #27ae60;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .auction-header {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            <span class="flag">🇷🇴</span>
+            BRM Day-Ahead Market Dashboard
+            <span style="font-size: 0.6em; color: #7f8c8d; margin-left: 1rem;">LIVE</span>
+        </h1>
+    </div>
+
+    <div class="container">
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>System Status</h3>
+                <div class="stat-value" id="system-status">
+                    <span class="status-indicator" id="status-indicator"></span>
+                    <span id="status-text">Loading...</span>
+                </div>
+                <div class="stat-label">BRM API Connection</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Total Auctions</h3>
+                <div class="stat-value" id="total-auctions">-</div>
+                <div class="stat-label">Available Markets</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Open Auctions</h3>
+                <div class="stat-value" id="open-auctions">-</div>
+                <div class="stat-label">Currently Bidding</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Completed</h3>
+                <div class="stat-value" id="completed-auctions">-</div>
+                <div class="stat-label">Results Published</div>
+            </div>
+        </div>
+
+        <!-- Auctions Section -->
+        <div class="auctions-section">
+            <div class="section-header">
+                <h2 class="section-title">⚡ Live Energy Auctions</h2>
+                <div class="auto-refresh">
+                    <div class="refresh-dot"></div>
+                    Auto-refresh every 30s
+                </div>
+            </div>
+            
+            <div class="last-update">
+                Last updated: <span id="last-update">Never</span>
+            </div>
+            
+            <div id="error-container"></div>
+            
+            <div id="auctions-container">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading live market data...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let marketData = {};
+        
+        function updateDashboard() {
+            fetch('/api/market-data')
+                .then(response => response.json())
+                .then(data => {
+                    marketData = data;
+                    updateStats(data);
+                    updateAuctions(data);
+                    updateLastUpdate(data.last_update);
+                    showError(data.error_message);
+                })
+                .catch(error => {
+                    console.error('Error fetching market data:', error);
+                    showError('Failed to fetch market data: ' + error.message);
+                });
+        }
+        
+        function updateStats(data) {
+            // System status
+            const statusText = document.getElementById('status-text');
+            const statusIndicator = document.getElementById('status-indicator');
+            
+            if (data.system_status === 'Ok') {
+                statusText.textContent = 'Online';
+                statusIndicator.className = 'status-indicator status-ok';
+            } else {
+                statusText.textContent = 'Error';
+                statusIndicator.className = 'status-indicator status-error';
+            }
+            
+            // Statistics
+            document.getElementById('total-auctions').textContent = data.stats?.total_auctions || 0;
+            document.getElementById('open-auctions').textContent = data.stats?.open_auctions || 0;
+            document.getElementById('completed-auctions').textContent = data.stats?.completed_auctions || 0;
+        }
+        
+        function updateAuctions(data) {
+            const container = document.getElementById('auctions-container');
+            
+            if (!data.auctions || data.auctions.length === 0) {
+                container.innerHTML = '<div class="loading">No auction data available</div>';
+                return;
+            }
+            
+            const auctionsHtml = data.auctions.map(auction => {
+                const state = auction.state || 'Unknown';
+                const stateClass = state.toLowerCase().includes('open') ? 'open' : 'completed';
+                const stateLabel = state.toLowerCase().includes('open') ? 'state-open' : 'state-completed';
+                
+                return `
+                    <div class="auction-card ${stateClass}" onclick="showAuctionDetails('${auction.id}')">
+                        <div class="auction-header">
+                            <div class="auction-id">${auction.id || 'Unknown'}</div>
+                            <div class="auction-state ${stateLabel}">${state}</div>
+                        </div>
+                        <div class="auction-name">${auction.name || 'No name available'}</div>
+                        <div class="auction-stats">
+                            <div class="auction-stat">
+                                <div class="auction-stat-value">${auction.orders_count || 0}</div>
+                                <div class="auction-stat-label">Orders</div>
+                            </div>
+                            <div class="auction-stat">
+                                <div class="auction-stat-value">${auction.trades_count || 0}</div>
+                                <div class="auction-stat-label">Trades</div>
+                            </div>
+                            <div class="auction-stat">
+                                <div class="auction-stat-value">${auction.prices_count || 0}</div>
+                                <div class="auction-stat-label">Prices</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = `<div class="auctions-grid">${auctionsHtml}</div>`;
+        }
+        
+        function updateLastUpdate(timestamp) {
+            if (timestamp) {
+                const date = new Date(timestamp);
+                document.getElementById('last-update').textContent = date.toLocaleString();
+            }
+        }
+        
+        function showError(message) {
+            const container = document.getElementById('error-container');
+            if (message) {
+                container.innerHTML = `<div class="error-message">⚠️ ${message}</div>`;
+            } else {
+                container.innerHTML = '';
+            }
+        }
+        
+        function showAuctionDetails(auctionId) {
+            const auction = marketData.auctions?.find(a => a.id === auctionId);
+            if (auction) {
+                alert(`Auction Details:\n\nID: ${auction.id}\nName: ${auction.name}\nState: ${auction.state}\nOrders: ${auction.orders_count}\nTrades: ${auction.trades_count}\nPrices: ${auction.prices_count}`);
+            }
+        }
+        
+        // Initial load
+        updateDashboard();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(updateDashboard, 30000);
+        
+        // Add some visual feedback for the refresh
+        setInterval(() => {
+            const dot = document.querySelector('.refresh-dot');
+            if (dot) {
+                dot.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    dot.style.transform = 'scale(1)';
+                }, 200);
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

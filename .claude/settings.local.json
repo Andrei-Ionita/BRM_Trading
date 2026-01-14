@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(python test_intraday_endpoints.py:*)",
+      "Bash(python -c:*)",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "WebFetch(domain:developers.nordpoolgroup.com)",
+      "Bash(timeout /t 3 /nobreak)",
+      "Bash(curl:*)",
+      "Bash(ping:*)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(del \"\\\\?\\\\C:\\\\Users\\\\Andrei\\\\OneDrive\\\\Desktop\\\\ML\\\\BRM_Trading_Bot\\\\nul\")",
+      "Bash(cmd /c \"del \\\\?\\\\C:\\\\Users\\\\Andrei\\\\OneDrive\\\\Desktop\\\\ML\\\\BRM_Trading_Bot\\\\nul\")",
+      "Bash(powershell:*)",
+      "Bash(git rm:*)",
+      "Bash(git reset:*)"
+    ]
+  }
+}

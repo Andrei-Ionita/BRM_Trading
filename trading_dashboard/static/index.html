@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRM Trading Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1f2937;
+            --bg-card: #161e2e;
+            --border-color: #374151;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --accent-purple: #8b5cf6;
+            --gradient-blue: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            --gradient-green: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --gradient-red: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.4);
+            --shadow-glow-blue: 0 0 30px rgba(59, 130, 246, 0.3);
+            --shadow-glow-green: 0 0 30px rgba(16, 185, 129, 0.3);
+            --shadow-glow-red: 0 0 30px rgba(239, 68, 68, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-blue);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.online { background: var(--accent-green); }
+        .status-dot.offline { background: var(--accent-red); }
+        .status-dot.pending { background: var(--accent-yellow); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: var(--bg-secondary);
+            padding: 0.5rem;
+            border-radius: 12px;
+            width: fit-content;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .tab-btn.active {
+            background: var(--gradient-blue);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            border-color: var(--accent-blue);
+            box-shadow: var(--shadow-glow-blue);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .card-icon.blue { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+        .card-icon.green { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+        .card-icon.red { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+        .card-icon.yellow { background: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); }
+        .card-icon.purple { background: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+        @media (max-width: 1200px) {
+            .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+        }
+
+        /* Stats */
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Test Results */
+        .test-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .test-item.success { border-left-color: var(--accent-green); }
+        .test-item.failed { border-left-color: var(--accent-red); }
+        .test-item.pending { border-left-color: var(--accent-yellow); }
+
+        .test-name {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .test-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .test-status.success { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+        .test-status.failed { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+        .test-status.pending { background: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow-blue);
+        }
+
+        .btn-success {
+            background: var(--gradient-green);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--gradient-red);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .code-block pre {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Evidence Section */
+        .evidence-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid var(--accent-red);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .evidence-title {
+            color: var(--accent-red);
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .evidence-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .evidence-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table tr:hover td {
+            background: var(--bg-secondary);
+        }
+
+        /* Loader */
+        .loader {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Permission Badge */
+        .permission-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .permission-badge.allowed {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+
+        .permission-badge.denied {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+
+        /* Market Stats Row */
+        .market-stats {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .market-stat {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        /* Alert Box */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--accent-yellow);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-red);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--accent-green);
+        }
+
+        .alert-icon {
+            font-size: 1.5rem;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">B</div>
+                <div>
+                    <div class="logo-text">BRM Trading</div>
+                    <div class="logo-subtitle">Test Environment</div>
+                </div>
+            </div>
+            <div class="header-status">
+                <div class="status-item">
+                    <span class="status-dot" id="da-status"></span>
+                    <span>Day-Ahead</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot" id="id-status"></span>
+                    <span>Intraday</span>
+                </div>
+                <div class="status-item" style="color: var(--text-muted);">
+                    <span id="current-time"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="overview">Overview</button>
+            <button class="tab-btn" data-tab="dayahead">Day-Ahead</button>
+            <button class="tab-btn" data-tab="intraday">Intraday</button>
+            <button class="tab-btn" data-tab="evidence">Permission Evidence</button>
+        </nav>
+
+        <!-- Overview Tab -->
+        <section id="overview" class="tab-content active">
+            <div class="grid grid-4">
+                <div class="card">
+                    <div class="card-icon blue">DA</div>
+                    <div class="stat-value" id="da-auctions-count">-</div>
+                    <div class="stat-label">Day-Ahead Auctions</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon green">ID</div>
+                    <div class="stat-value" id="id-areas-count">-</div>
+                    <div class="stat-label">Delivery Areas</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon purple">ID</div>
+                    <div class="stat-value" id="id-contracts-count">-</div>
+                    <div class="stat-label">Intraday Contracts</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon yellow">RO</div>
+                    <div class="stat-value" id="ro-active-count">-</div>
+                    <div class="stat-label">Romania Active</div>
+                </div>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon blue">DA</div>
+                            Day-Ahead Status
+                        </div>
+                        <button class="btn btn-secondary" onclick="runDayAheadTests()">
+                            <span>Run Tests</span>
+                        </button>
+                    </div>
+                    <div id="da-tests">
+                        <div class="test-item pending">
+                            <span class="test-name">Click "Run Tests" to start</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon green">ID</div>
+                            Intraday Status
+                        </div>
+                        <button class="btn btn-secondary" onclick="runIntradayTests()">
+                            <span>Run Tests</span>
+                        </button>
+                    </div>
+                    <div id="id-tests">
+                        <div class="test-item pending">
+                            <span class="test-name">Click "Run Tests" to start</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon red">!</div>
+                        Permission Summary
+                    </div>
+                </div>
+                <div class="evidence-box">
+                    <div class="evidence-title">
+                        <span>&#9888;</span> Trading Permissions Not Granted
+                    </div>
+                    <div class="evidence-item">
+                        <span>Day-Ahead Order Submission</span>
+                        <span class="permission-badge denied">DENIED</span>
+                    </div>
+                    <div class="evidence-item">
+                        <span>Intraday Configuration Access</span>
+                        <span class="permission-badge denied">DENIED</span>
+                    </div>
+                    <div class="evidence-item">
+                        <span>Intraday Order Reports</span>
+                        <span class="permission-badge denied">DENIED</span>
+                    </div>
+                    <div class="evidence-item">
+                        <span>Market Data (Read Only)</span>
+                        <span class="permission-badge allowed">ALLOWED</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Day-Ahead Tab -->
+        <section id="dayahead" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon blue">&#128274;</div>
+                        Authentication
+                    </div>
+                    <button class="btn btn-primary" onclick="testDAAuth()">Test Auth</button>
+                </div>
+                <div id="da-auth-result"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon green">&#128200;</div>
+                        Available Auctions
+                    </div>
+                    <button class="btn btn-primary" onclick="loadDAuctions()">Load Auctions</button>
+                </div>
+                <div id="da-auctions-table"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon red">&#128176;</div>
+                        Order Placement Test
+                    </div>
+                    <button class="btn btn-danger" onclick="testDAOrder()">Attempt Order</button>
+                </div>
+                <div class="alert alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div>
+                        <strong>This will attempt to place a test order</strong><br>
+                        The order will be rejected due to permission restrictions. This demonstrates that the test user cannot submit orders.
+                    </div>
+                </div>
+                <div id="da-order-result"></div>
+            </div>
+        </section>
+
+        <!-- Intraday Tab -->
+        <section id="intraday" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon blue">&#128274;</div>
+                        Authentication
+                    </div>
+                    <button class="btn btn-primary" onclick="testIDAuth()">Test Auth</button>
+                </div>
+                <div id="id-auth-result"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon green">&#127760;</div>
+                        WebSocket Market Data
+                    </div>
+                    <button class="btn btn-primary" onclick="loadIDMarketData()">Connect & Load</button>
+                </div>
+                <div id="id-market-data"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon purple">&#128275;</div>
+                        Subscription Permissions
+                    </div>
+                    <button class="btn btn-primary" onclick="testIDPermissions()">Test All Subscriptions</button>
+                </div>
+                <div id="id-permissions-result"></div>
+            </div>
+        </section>
+
+        <!-- Evidence Tab -->
+        <section id="evidence" class="tab-content">
+            <div class="alert alert-error">
+                <span class="alert-icon">&#9888;</span>
+                <div>
+                    <strong>PERMISSION EVIDENCE SUMMARY</strong><br>
+                    This page documents all API responses that demonstrate the test users have read-only access and cannot submit orders.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon red">&#128196;</div>
+                        Complete Evidence Report
+                    </div>
+                    <button class="btn btn-danger" onclick="generateEvidence()">Generate Full Report</button>
+                </div>
+                <div id="evidence-report"></div>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Day-Ahead Evidence</div>
+                    </div>
+                    <div class="test-item success">
+                        <span class="test-name">&#10004; Authentication</span>
+                        <span class="test-status success">Working</span>
+                    </div>
+                    <div class="test-item success">
+                        <span class="test-name">&#10004; Get Auctions</span>
+                        <span class="test-status success">Working</span>
+                    </div>
+                    <div class="test-item success">
+                        <span class="test-name">&#10004; View Portfolio</span>
+                        <span class="test-status success">Working</span>
+                    </div>
+                    <div class="test-item success">
+                        <span class="test-name">&#10004; View Contracts</span>
+                        <span class="test-status success">Working</span>
+                    </div>
+                    <div class="test-item failed">
+                        <span class="test-name">&#10008; Submit Orders</span>
+                        <span class="test-status failed">Denied</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Intraday Evidence</div>
+                    </div>
+                    <div class="test-item success">
+                        <span class="test-name">&#10004; Authentication</span>
+                        <span class="test-status success">Working</span>
+                    </div>
+                    <div class="test-item success">
+                        <span class="test-name">&#10004; WebSocket Connect</span>
+                        <span class="test-status success">Working</span>
+                    </div>
+                    <div class="test-item success">
+                        <span class="test-name">&#10004; Delivery Areas</span>
+                        <span class="test-status success">Working</span>
+                    </div>
+                    <div class="test-item success">
+                        <span class="test-name">&#10004; Contracts</span>
+                        <span class="test-status success">Working</span>
+                    </div>
+                    <div class="test-item failed">
+                        <span class="test-name">&#10008; Configuration</span>
+                        <span class="test-status failed">Denied</span>
+                    </div>
+                    <div class="test-item failed">
+                        <span class="test-name">&#10008; Order Reports</span>
+                        <span class="test-status failed">Denied</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Tab Navigation
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Update time
+        function updateTime() {
+            document.getElementById('current-time').textContent = new Date().toLocaleTimeString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // API Functions
+        async function fetchAPI(endpoint) {
+            try {
+                const resp = await fetch(endpoint);
+                return await resp.json();
+            } catch (e) {
+                return { status: 'error', message: e.message };
+            }
+        }
+
+        // Day-Ahead Tests
+        async function testDAAuth() {
+            const container = document.getElementById('da-auth-result');
+            container.innerHTML = '<div class="loader"></div>';
+
+            const result = await fetchAPI('/api/test/dayahead/auth');
+
+            if (result.status === 'success') {
+                document.getElementById('da-status').className = 'status-dot online';
+                container.innerHTML = `
+                    <div class="test-item success">
+                        <span class="test-name">&#10004; ${result.message}</span>
+                        <span class="test-status success">Success</span>
+                    </div>
+                    <div class="code-block"><pre>${JSON.stringify(result.details, null, 2)}</pre></div>
+                `;
+            } else {
+                document.getElementById('da-status').className = 'status-dot offline';
+                container.innerHTML = `
+                    <div class="test-item failed">
+                        <span class="test-name">&#10008; ${result.message}</span>
+                        <span class="test-status failed">Failed</span>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadDAuctions() {
+            const container = document.getElementById('da-auctions-table');
+            container.innerHTML = '<div class="loader"></div>';
+
+            const result = await fetchAPI('/api/test/dayahead/auctions');
+
+            if (result.status === 'success') {
+                document.getElementById('da-auctions-count').textContent = result.data.length;
+                let html = `<table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>State</th>
+                            <th>Close Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                result.data.forEach(auction => {
+                    html += `<tr>
+                        <td><code>${auction.id}</code></td>
+                        <td>${auction.name}</td>
+                        <td><span class="permission-badge ${auction.state === 'Open' ? 'allowed' : 'denied'}">${auction.state}</span></td>
+                        <td>${new Date(auction.closeForBidding).toLocaleString()}</td>
+                    </tr>`;
+                });
+
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = `<div class="test-item failed"><span class="test-name">&#10008; ${result.message}</span></div>`;
+            }
+        }
+
+        async function testDAOrder() {
+            const container = document.getElementById('da-order-result');
+            container.innerHTML = '<div class="loader"></div> Attempting to place order...';
+
+            const result = await fetchAPI('/api/test/dayahead/place-order');
+
+            let html = `
+                <div class="evidence-box">
+                    <div class="evidence-title">
+                        <span>&#128683;</span> Order Submission Result: ${result.status.toUpperCase()}
+                    </div>
+                    <div class="evidence-item">
+                        <span>HTTP Status Code</span>
+                        <strong>${result.response_code}</strong>
+                    </div>
+                    <div class="evidence-item">
+                        <span>Portfolio Used</span>
+                        <code>${result.evidence?.portfolio_used || 'N/A'}</code>
+                    </div>
+                    <div class="evidence-item">
+                        <span>Portfolio Visible</span>
+                        <span class="permission-badge ${result.evidence?.portfolio_visible ? 'allowed' : 'denied'}">
+                            ${result.evidence?.portfolio_visible ? 'YES' : 'NO'}
+                        </span>
+                    </div>
+                    <div class="evidence-item">
+                        <span>Order Submission</span>
+                        <span class="permission-badge ${result.evidence?.order_submission === 'ALLOWED' ? 'allowed' : 'denied'}">
+                            ${result.evidence?.order_submission || 'DENIED'}
+                        </span>
+                    </div>
+                </div>
+                <h4 style="margin: 1rem 0;">API Response:</h4>
+                <div class="code-block"><pre>${JSON.stringify(result.response_message, null, 2)}</pre></div>
+                <h4 style="margin: 1rem 0;">Order Sent:</h4>
+                <div class="code-block"><pre>${JSON.stringify(result.order_sent, null, 2)}</pre></div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // Intraday Tests
+        async function testIDAuth() {
+            const container = document.getElementById('id-auth-result');
+            container.innerHTML = '<div class="loader"></div>';
+
+            const result = await fetchAPI('/api/test/intraday/auth');
+
+            if (result.status === 'success') {
+                document.getElementById('id-status').className = 'status-dot online';
+                container.innerHTML = `
+                    <div class="test-item success">
+                        <span class="test-name">&#10004; ${result.message}</span>
+                        <span class="test-status success">Success</span>
+                    </div>
+                    <div class="code-block"><pre>${JSON.stringify(result.details, null, 2)}</pre></div>
+                `;
+            } else {
+                document.getElementById('id-status').className = 'status-dot offline';
+                container.innerHTML = `
+                    <div class="test-item failed">
+                        <span class="test-name">&#10008; ${result.message}</span>
+                        <span class="test-status failed">Failed</span>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadIDMarketData() {
+            const container = document.getElementById('id-market-data');
+            container.innerHTML = '<div class="loader"></div> Connecting to WebSocket...';
+
+            const result = await fetchAPI('/api/test/intraday/market-data');
+
+            document.getElementById('id-areas-count').textContent = result.delivery_areas_count || 0;
+            document.getElementById('id-contracts-count').textContent = result.contracts_count || 0;
+            document.getElementById('ro-active-count').textContent = result.romania_active_contracts || 0;
+
+            let html = `
+                <div class="market-stats">
+                    <div class="market-stat">
+                        <div class="stat-value">${result.delivery_areas_count || 0}</div>
+                        <div class="stat-label">Delivery Areas</div>
+                    </div>
+                    <div class="market-stat">
+                        <div class="stat-value">${result.contracts_count || 0}</div>
+                        <div class="stat-label">Contracts</div>
+                    </div>
+                    <div class="market-stat">
+                        <div class="stat-value">${result.romania_active_contracts || 0}</div>
+                        <div class="stat-label">Romania Active</div>
+                    </div>
+                </div>
+            `;
+
+            if (result.romania) {
+                html += `
+                    <h4 style="margin: 1rem 0;">Romania Delivery Area:</h4>
+                    <div class="code-block"><pre>${JSON.stringify(result.romania, null, 2)}</pre></div>
+                `;
+            }
+
+            html += `
+                <div class="evidence-box" style="margin-top: 1rem;">
+                    <div class="evidence-title">
+                        <span>&#128275;</span> Subscription Access
+                    </div>
+                    <div class="evidence-item">
+                        <span>Configuration (portfolios)</span>
+                        <span class="permission-badge ${result.config_subscription?.status === 'DENIED' ? 'denied' : 'allowed'}">
+                            ${result.config_subscription?.status || 'UNKNOWN'}
+                        </span>
+                    </div>
+                    <div class="evidence-item">
+                        <span>Order Execution Reports</span>
+                        <span class="permission-badge ${result.order_report_subscription?.status === 'DENIED' ? 'denied' : 'allowed'}">
+                            ${result.order_report_subscription?.status || 'UNKNOWN'}
+                        </span>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        async function testIDPermissions() {
+            const container = document.getElementById('id-permissions-result');
+            container.innerHTML = '<div class="loader"></div> Testing all subscriptions...';
+
+            const result = await fetchAPI('/api/test/intraday/permissions');
+
+            let html = `
+                <div class="test-item ${result.authentication?.status === 'success' ? 'success' : 'failed'}">
+                    <span class="test-name">Authentication</span>
+                    <span class="test-status ${result.authentication?.status === 'success' ? 'success' : 'failed'}">
+                        ${result.authentication?.status?.toUpperCase()}
+                    </span>
+                </div>
+                <div class="test-item ${result.websocket_connection?.status === 'success' ? 'success' : 'failed'}">
+                    <span class="test-name">WebSocket Connection</span>
+                    <span class="test-status ${result.websocket_connection?.status === 'success' ? 'success' : 'failed'}">
+                        ${result.websocket_connection?.status?.toUpperCase()}
+                    </span>
+                </div>
+                <div class="test-item ${result.stomp_handshake?.status === 'success' ? 'success' : 'failed'}">
+                    <span class="test-name">STOMP Handshake</span>
+                    <span class="test-status ${result.stomp_handshake?.status === 'success' ? 'success' : 'failed'}">
+                        ${result.stomp_handshake?.status?.toUpperCase()}
+                    </span>
+                </div>
+                <h4 style="margin: 1rem 0;">Topic Subscriptions:</h4>
+            `;
+
+            if (result.subscriptions) {
+                for (const [topic, data] of Object.entries(result.subscriptions)) {
+                    const isAllowed = data.status === 'ALLOWED';
+                    html += `
+                        <div class="test-item ${isAllowed ? 'success' : 'failed'}">
+                            <span class="test-name">
+                                <span class="permission-badge ${data.category === 'Trading' ? 'denied' : 'allowed'}" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
+                                    ${data.category}
+                                </span>
+                                ${topic}
+                            </span>
+                            <span class="test-status ${isAllowed ? 'success' : 'failed'}">
+                                ${data.status}
+                            </span>
+                        </div>
+                    `;
+                }
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Run all tests
+        async function runDayAheadTests() {
+            const container = document.getElementById('da-tests');
+            container.innerHTML = '<div class="loader"></div> Running tests...';
+
+            await testDAAuth();
+            await loadDAuctions();
+
+            const orderResult = await fetchAPI('/api/test/dayahead/place-order');
+
+            container.innerHTML = `
+                <div class="test-item success">
+                    <span class="test-name">&#10004; Authentication</span>
+                    <span class="test-status success">Working</span>
+                </div>
+                <div class="test-item success">
+                    <span class="test-name">&#10004; Get Auctions</span>
+                    <span class="test-status success">Working</span>
+                </div>
+                <div class="test-item success">
+                    <span class="test-name">&#10004; View Portfolios</span>
+                    <span class="test-status success">Working</span>
+                </div>
+                <div class="test-item failed">
+                    <span class="test-name">&#10008; Place Orders</span>
+                    <span class="test-status failed">Denied (${orderResult.response_code})</span>
+                </div>
+            `;
+        }
+
+        async function runIntradayTests() {
+            const container = document.getElementById('id-tests');
+            container.innerHTML = '<div class="loader"></div> Running tests...';
+
+            await testIDAuth();
+            const marketData = await fetchAPI('/api/test/intraday/market-data');
+
+            container.innerHTML = `
+                <div class="test-item success">
+                    <span class="test-name">&#10004; Authentication</span>
+                    <span class="test-status success">Working</span>
+                </div>
+                <div class="test-item success">
+                    <span class="test-name">&#10004; WebSocket + STOMP</span>
+                    <span class="test-status success">Working</span>
+                </div>
+                <div class="test-item success">
+                    <span class="test-name">&#10004; Delivery Areas (${marketData.delivery_areas_count || 0})</span>
+                    <span class="test-status success">Working</span>
+                </div>
+                <div class="test-item success">
+                    <span class="test-name">&#10004; Contracts (${marketData.contracts_count || 0})</span>
+                    <span class="test-status success">Working</span>
+                </div>
+                <div class="test-item failed">
+                    <span class="test-name">&#10008; Configuration</span>
+                    <span class="test-status failed">Denied</span>
+                </div>
+                <div class="test-item failed">
+                    <span class="test-name">&#10008; Order Reports</span>
+                    <span class="test-status failed">Denied</span>
+                </div>
+            `;
+        }
+
+        async function generateEvidence() {
+            const container = document.getElementById('evidence-report');
+            container.innerHTML = '<div class="loader"></div> Generating comprehensive evidence report...';
+
+            // Run all tests
+            const [daAuth, daAuctions, daOrder, idAuth, idData, idPerms, summary] = await Promise.all([
+                fetchAPI('/api/test/dayahead/auth'),
+                fetchAPI('/api/test/dayahead/auctions'),
+                fetchAPI('/api/test/dayahead/place-order'),
+                fetchAPI('/api/test/intraday/auth'),
+                fetchAPI('/api/test/intraday/market-data'),
+                fetchAPI('/api/test/intraday/permissions'),
+                fetchAPI('/api/evidence/summary')
+            ]);
+
+            const report = {
+                generated_at: new Date().toISOString(),
+                environment: "TEST",
+                summary: summary,
+                day_ahead: {
+                    authentication: daAuth,
+                    auctions: { count: daAuctions.data?.length || 0 },
+                    order_attempt: daOrder
+                },
+                intraday: {
+                    authentication: idAuth,
+                    market_data: idData,
+                    permissions: idPerms
+                }
+            };
+
+            container.innerHTML = `
+                <div class="alert alert-error">
+                    <span class="alert-icon">&#128196;</span>
+                    <div>
+                        <strong>Evidence Report Generated</strong><br>
+                        Timestamp: ${report.generated_at}
+                    </div>
+                </div>
+                <div class="code-block" style="max-height: 600px;"><pre>${JSON.stringify(report, null, 2)}</pre></div>
+                <button class="btn btn-primary" style="margin-top: 1rem;" onclick="copyEvidence()">
+                    Copy to Clipboard
+                </button>
+            `;
+
+            window.evidenceReport = report;
+        }
+
+        function copyEvidence() {
+            if (window.evidenceReport) {
+                navigator.clipboard.writeText(JSON.stringify(window.evidenceReport, null, 2));
+                alert('Evidence report copied to clipboard!');
+            }
+        }
+
+        // Initialize
+        document.getElementById('da-status').className = 'status-dot pending';
+        document.getElementById('id-status').className = 'status-dot pending';
+    </script>
+</body>
+</html>

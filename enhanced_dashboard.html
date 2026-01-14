@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRM Trading Dashboard - Enhanced</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .flag {
+            font-size: 1.5rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card h3 {
+            color: #2c3e50;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3498db;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .auctions-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .trading-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .auction-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .auction-card:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .auction-card.selected {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+
+        .auction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .auction-id {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        .auction-state {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .state-open {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .state-closed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .auction-name {
+            color: #495057;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .auction-times {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2980b9, #1f5f8b);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #229954, #1e8449);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .contract-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 0.5rem;
+        }
+
+        .contract-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+
+        .contract-id {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .contract-time {
+            color: #6c757d;
+        }
+
+        .curve-points {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .curve-point {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .curve-point:last-child {
+            margin-bottom: 0;
+        }
+
+        .remove-point {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .add-point {
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-connected {
+            background: #27ae60;
+            animation: pulse 2s infinite;
+        }
+
+        .status-error {
+            background: #e74c3c;
+        }
+
+        .status-unknown {
+            background: #f39c12;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .orders-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 2rem;
+        }
+
+        .order-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #27ae60;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .order-id {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            <span class="flag">🇷🇴</span>
+            BRM Trading Dashboard - Enhanced
+            <span class="status-indicator" id="statusIndicator"></span>
+        </h1>
+    </div>
+
+    <div class="container">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>System Status</h3>
+                <div class="stat-value" id="systemStatus">Loading...</div>
+                <div class="stat-label">Connection Status</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Auctions</h3>
+                <div class="stat-value" id="totalAuctions">-</div>
+                <div class="stat-label">Available Today</div>
+            </div>
+            <div class="stat-card">
+                <h3>Open Auctions</h3>
+                <div class="stat-value" id="openAuctions">-</div>
+                <div class="stat-label">Ready for Trading</div>
+            </div>
+            <div class="stat-card">
+                <h3>Last Update</h3>
+                <div class="stat-value" id="lastUpdate">-</div>
+                <div class="stat-label">Data Refresh</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Auctions List -->
+            <div class="auctions-section">
+                <h2 class="section-title">
+                    📊 Available Auctions
+                </h2>
+                <div id="auctionsList">
+                    <div class="loading">Loading auction data...</div>
+                </div>
+            </div>
+
+            <!-- Trading Panel -->
+            <div class="trading-panel">
+                <h2 class="section-title">
+                    💼 Order Placement
+                </h2>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('block')">Block Orders</button>
+                    <button class="tab" onclick="switchTab('curve')">Curve Orders</button>
+                </div>
+
+                <!-- Block Order Form -->
+                <div id="blockTab" class="tab-content active">
+                    <form id="blockOrderForm">
+                        <div class="form-group">
+                            <label class="form-label">Auction</label>
+                            <select class="form-select" id="blockAuctionSelect" required>
+                                <option value="">Select an auction</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Block Name</label>
+                            <input type="text" class="form-input" id="blockName" placeholder="e.g., SellBlock1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Price (EUR/MWh)</label>
+                            <input type="number" class="form-input" id="blockPrice" step="0.01" placeholder="e.g., 55.00" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Contract & Volume</label>
+                            <select class="form-select" id="blockContractSelect">
+                                <option value="">Select a contract first</option>
+                            </select>
+                            <input type="number" class="form-input" id="blockVolume" step="0.1" placeholder="Volume (MW, negative for sell)" style="margin-top: 0.5rem;" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Minimum Acceptance Ratio</label>
+                            <input type="number" class="form-input" id="blockRatio" step="0.1" min="0" max="1" value="1.0" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            Place Block Order
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Curve Order Form -->
+                <div id="curveTab" class="tab-content">
+                    <form id="curveOrderForm">
+                        <div class="form-group">
+                            <label class="form-label">Auction</label>
+                            <select class="form-select" id="curveAuctionSelect" required>
+                                <option value="">Select an auction</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Contract</label>
+                            <select class="form-select" id="curveContractSelect" required>
+                                <option value="">Select a contract first</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Curve Points</label>
+                            <div class="curve-points" id="curvePoints">
+                                <div class="curve-point">
+                                    <input type="number" class="form-input" placeholder="Price (EUR/MWh)" step="0.01" required>
+                                    <input type="number" class="form-input" placeholder="Volume (MW)" step="0.1" required>
+                                    <button type="button" class="remove-point" onclick="removeCurvePoint(this)">×</button>
+                                </div>
+                            </div>
+                            <button type="button" class="add-point" onclick="addCurvePoint()">+ Add Point</button>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success" style="width: 100%;">
+                            Place Curve Order
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div class="orders-section">
+            <h2 class="section-title">
+                📋 My Orders
+            </h2>
+            <div id="ordersList">
+                <div class="loading">Select an auction to view orders...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedAuction = null;
+        let marketData = {};
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMarketData();
+            setInterval(loadMarketData, 30000); // Update every 30 seconds
+            
+            // Setup form handlers
+            setupFormHandlers();
+        });
+
+        function loadMarketData() {
+            fetch('/api/market-data')
+                .then(response => response.json())
+                .then(data => {
+                    marketData = data;
+                    updateStats(data);
+                    updateAuctionsList(data.auctions || []);
+                    updateAuctionSelects(data.auctions || []);
+                })
+                .catch(error => {
+                    console.error('Error loading market data:', error);
+                    updateStats({
+                        system_status: 'Error',
+                        error_message: 'Failed to load market data'
+                    });
+                });
+        }
+
+        function updateStats(data) {
+            const statusIndicator = document.getElementById('statusIndicator');
+            const systemStatus = document.getElementById('systemStatus');
+            const totalAuctions = document.getElementById('totalAuctions');
+            const openAuctions = document.getElementById('openAuctions');
+            const lastUpdate = document.getElementById('lastUpdate');
+
+            // Update status indicator
+            statusIndicator.className = 'status-indicator';
+            if (data.system_status === 'Connected') {
+                statusIndicator.classList.add('status-connected');
+                systemStatus.textContent = 'Connected';
+                systemStatus.style.color = '#27ae60';
+            } else if (data.system_status === 'Error') {
+                statusIndicator.classList.add('status-error');
+                systemStatus.textContent = 'Error';
+                systemStatus.style.color = '#e74c3c';
+            } else {
+                statusIndicator.classList.add('status-unknown');
+                systemStatus.textContent = 'Unknown';
+                systemStatus.style.color = '#f39c12';
+            }
+
+            // Update stats
+            if (data.stats) {
+                totalAuctions.textContent = data.stats.total_auctions || 0;
+                openAuctions.textContent = data.stats.open_auctions || 0;
+            }
+
+            if (data.last_update) {
+                const updateTime = new Date(data.last_update);
+                lastUpdate.textContent = updateTime.toLocaleTimeString();
+            }
+        }
+
+        function updateAuctionsList(auctions) {
+            const auctionsList = document.getElementById('auctionsList');
+            
+            if (!auctions || auctions.length === 0) {
+                auctionsList.innerHTML = '<div class="loading">No auctions available</div>';
+                return;
+            }
+
+            const auctionsHtml = auctions.map(auction => {
+                const isSelected = selectedAuction && selectedAuction.id === auction.id;
+                const stateClass = auction.state.toLowerCase() === 'open' ? 'state-open' : 'state-closed';
+                
+                return `
+                    <div class="auction-card ${isSelected ? 'selected' : ''}" onclick="selectAuction('${auction.id}')">
+                        <div class="auction-header">
+                            <div class="auction-id">${auction.id}</div>
+                            <div class="auction-state ${stateClass}">${auction.state}</div>
+                        </div>
+                        <div class="auction-name">${auction.name || 'Unknown'}</div>
+                        <div class="auction-times">
+                            <div><strong>Delivery:</strong> ${formatDateTime(auction.deliveryStart)}</div>
+                            <div><strong>Close:</strong> ${formatDateTime(auction.closeForBidding)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            auctionsList.innerHTML = auctionsHtml;
+        }
+
+        function updateAuctionSelects(auctions) {
+            const blockSelect = document.getElementById('blockAuctionSelect');
+            const curveSelect = document.getElementById('curveAuctionSelect');
+            
+            const openAuctions = auctions.filter(a => a.state.toLowerCase() === 'open');
+            
+            const optionsHtml = openAuctions.map(auction => 
+                `<option value="${auction.id}">${auction.id} - ${auction.name || 'Unknown'}</option>`
+            ).join('');
+
+            blockSelect.innerHTML = '<option value="">Select an auction</option>' + optionsHtml;
+            curveSelect.innerHTML = '<option value="">Select an auction</option>' + optionsHtml;
+        }
+
+        function selectAuction(auctionId) {
+            selectedAuction = marketData.auctions.find(a => a.id === auctionId);
+            updateAuctionsList(marketData.auctions);
+            loadAuctionOrders(auctionId);
+        }
+
+        function loadAuctionContracts(auctionId, selectElementId) {
+            fetch(`/api/auction/${auctionId}/contracts`)
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById(selectElementId);
+                    
+                    if (data.success && data.contracts) {
+                        const optionsHtml = data.contracts.map(contract => 
+                            `<option value="${contract.id}">${contract.id} (${formatDateTime(contract.deliveryStart)} - ${formatDateTime(contract.deliveryEnd)})</option>`
+                        ).join('');
+                        
+                        select.innerHTML = '<option value="">Select a contract</option>' + optionsHtml;
+                    } else {
+                        select.innerHTML = '<option value="">No contracts available</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading contracts:', error);
+                    const select = document.getElementById(selectElementId);
+                    select.innerHTML = '<option value="">Error loading contracts</option>';
+                });
+        }
+
+        function loadAuctionOrders(auctionId) {
+            fetch(`/api/auction/${auctionId}/orders`)
+                .then(response => response.json())
+                .then(data => {
+                    const ordersList = document.getElementById('ordersList');
+                    
+                    if (data.success && data.data && data.data.length > 0) {
+                        const ordersHtml = data.data.map(order => {
+                            const orderId = order.id || order.orderId || 'Unknown';
+                            const orderType = order.type || order.orderType || 'Unknown';
+                            
+                            return `
+                                <div class="order-card">
+                                    <div class="order-header">
+                                        <div class="order-id">Order: ${orderId}</div>
+                                        <div class="order-actions">
+                                            <button class="btn btn-danger" onclick="cancelOrder('${orderId}', '${orderType}')">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div><strong>Type:</strong> ${orderType}</div>
+                                    <div><strong>Status:</strong> ${order.status || order.state || 'Unknown'}</div>
+                                </div>
+                            `;
+                        }).join('');
+                        
+                        ordersList.innerHTML = ordersHtml;
+                    } else {
+                        ordersList.innerHTML = '<div class="loading">No orders found for this auction</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading orders:', error);
+                    document.getElementById('ordersList').innerHTML = '<div class="error-message">Error loading orders</div>';
+                });
+        }
+
+        function setupFormHandlers() {
+            // Block auction select change
+            document.getElementById('blockAuctionSelect').addEventListener('change', function() {
+                if (this.value) {
+                    loadAuctionContracts(this.value, 'blockContractSelect');
+                }
+            });
+
+            // Curve auction select change
+            document.getElementById('curveAuctionSelect').addEventListener('change', function() {
+                if (this.value) {
+                    loadAuctionContracts(this.value, 'curveContractSelect');
+                }
+            });
+
+            // Block order form submit
+            document.getElementById('blockOrderForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitBlockOrder();
+            });
+
+            // Curve order form submit
+            document.getElementById('curveOrderForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitCurveOrder();
+            });
+        }
+
+        function submitBlockOrder() {
+            const form = document.getElementById('blockOrderForm');
+            const formData = new FormData(form);
+            
+            const orderData = {
+                auctionId: document.getElementById('blockAuctionSelect').value,
+                name: document.getElementById('blockName').value,
+                price: parseFloat(document.getElementById('blockPrice').value),
+                contractVolumes: {},
+                minimumAcceptanceRatio: parseFloat(document.getElementById('blockRatio').value)
+            };
+
+            const contractId = document.getElementById('blockContractSelect').value;
+            const volume = parseFloat(document.getElementById('blockVolume').value);
+            
+            if (contractId && !isNaN(volume)) {
+                orderData.contractVolumes[contractId] = volume;
+            } else {
+                alert('Please select a contract and enter a valid volume');
+                return;
+            }
+
+            fetch('/api/place-block-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Block order placed successfully!');
+                    form.reset();
+                    if (selectedAuction) {
+                        loadAuctionOrders(selectedAuction.id);
+                    }
+                } else {
+                    alert('Error placing block order: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error placing block order:', error);
+                alert('Error placing block order: ' + error.message);
+            });
+        }
+
+        function submitCurveOrder() {
+            const auctionId = document.getElementById('curveAuctionSelect').value;
+            const contractId = document.getElementById('curveContractSelect').value;
+            
+            const curvePoints = [];
+            const pointElements = document.querySelectorAll('#curvePoints .curve-point');
+            
+            pointElements.forEach(point => {
+                const priceInput = point.querySelector('input[placeholder*="Price"]');
+                const volumeInput = point.querySelector('input[placeholder*="Volume"]');
+                
+                const price = parseFloat(priceInput.value);
+                const volume = parseFloat(volumeInput.value);
+                
+                if (!isNaN(price) && !isNaN(volume)) {
+                    curvePoints.push({ price, volume });
+                }
+            });
+
+            if (curvePoints.length === 0) {
+                alert('Please add at least one valid curve point');
+                return;
+            }
+
+            const orderData = {
+                auctionId,
+                contractId,
+                curvePoints
+            };
+
+            fetch('/api/place-curve-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Curve order placed successfully!');
+                    document.getElementById('curveOrderForm').reset();
+                    resetCurvePoints();
+                    if (selectedAuction) {
+                        loadAuctionOrders(selectedAuction.id);
+                    }
+                } else {
+                    alert('Error placing curve order: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error placing curve order:', error);
+                alert('Error placing curve order: ' + error.message);
+            });
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        function addCurvePoint() {
+            const curvePoints = document.getElementById('curvePoints');
+            const newPoint = document.createElement('div');
+            newPoint.className = 'curve-point';
+            newPoint.innerHTML = `
+                <input type="number" class="form-input" placeholder="Price (EUR/MWh)" step="0.01" required>
+                <input type="number" class="form-input" placeholder="Volume (MW)" step="0.1" required>
+                <button type="button" class="remove-point" onclick="removeCurvePoint(this)">×</button>
+            `;
+            curvePoints.appendChild(newPoint);
+        }
+
+        function removeCurvePoint(button) {
+            const curvePoints = document.getElementById('curvePoints');
+            if (curvePoints.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+
+        function resetCurvePoints() {
+            const curvePoints = document.getElementById('curvePoints');
+            curvePoints.innerHTML = `
+                <div class="curve-point">
+                    <input type="number" class="form-input" placeholder="Price (EUR/MWh)" step="0.01" required>
+                    <input type="number" class="form-input" placeholder="Volume (MW)" step="0.1" required>
+                    <button type="button" class="remove-point" onclick="removeCurvePoint(this)">×</button>
+                </div>
+            `;
+        }
+
+        function cancelOrder(orderId, orderType) {
+            if (!confirm('Are you sure you want to cancel this order?')) {
+                return;
+            }
+
+            const endpoint = orderType.toLowerCase().includes('block') 
+                ? `/api/cancel-block-order/${orderId}`
+                : `/api/cancel-curve-order/${orderId}`;
+
+            fetch(endpoint, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Order cancelled successfully!');
+                        if (selectedAuction) {
+                            loadAuctionOrders(selectedAuction.id);
+                        }
+                    } else {
+                        alert('Error cancelling order: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cancelling order:', error);
+                    alert('Error cancelling order: ' + error.message);
+                });
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return 'Unknown';
+            const date = new Date(dateString);
+            return date.toLocaleString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    </script>
+</body>
+</html>

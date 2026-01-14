@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🇷🇴 BRM Trading Dashboard - Day-Ahead & Intraday Markets</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .header .flag {
+            font-size: 2rem;
+            margin-right: 0.5rem;
+        }
+
+        .live-indicator {
+            background: #27ae60;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .main-container {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Tab Navigation */
+        .tab-navigation {
+            display: flex;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 0;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1rem 2rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-button.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .tab-button:hover:not(.active) {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+
+        .tab-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 0 0 15px 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Status Cards */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .status-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .status-card h3 {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-card .label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .status-online { color: #27ae60; }
+        .status-number { color: #3498db; }
+        .status-warning { color: #f39c12; }
+        .status-success { color: #27ae60; }
+
+        /* Market Section */
+        .market-section {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .market-section h2 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .refresh-indicator {
+            background: #27ae60;
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-left: auto;
+        }
+
+        /* Auction Cards */
+        .auction-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .auction-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .auction-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .auction-card.open {
+            border-left: 5px solid #27ae60;
+        }
+
+        .auction-card.closed {
+            border-left: 5px solid #e74c3c;
+        }
+
+        .auction-card.results-published {
+            border-left: 5px solid #f39c12;
+        }
+
+        .auction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .auction-id {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+
+        .auction-status {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-open {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-closed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-results-published {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .auction-description {
+            color: #666;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .auction-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .stat {
+            padding: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3498db;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        /* Order Placement Section */
+        .order-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .order-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .order-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        /* Intraday specific styles */
+        .intraday-ticker {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .ticker-card {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .ticker-contract {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .ticker-price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .ticker-change {
+            font-size: 0.8rem;
+        }
+
+        .price-up { color: #2ecc71; }
+        .price-down { color: #e74c3c; }
+
+        /* Loading and Error States */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .main-container {
+                padding: 1rem;
+            }
+
+            .status-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .tab-button {
+                padding: 0.8rem 1rem;
+                font-size: 1rem;
+            }
+
+            .order-form {
+                grid-template-columns: 1fr;
+            }
+
+            .order-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><span class="flag">🇷🇴</span>BRM Trading Dashboard</h1>
+        <div class="live-indicator">LIVE</div>
+    </div>
+
+    <div class="main-container">
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-button active" onclick="showTab('dayahead')">
+                ⚡ Day-Ahead Market
+            </button>
+            <button class="tab-button" onclick="showTab('intraday')">
+                🔄 Intraday Market
+            </button>
+        </div>
+
+        <!-- Day-Ahead Market Tab -->
+        <div id="dayahead-tab" class="tab-content active">
+            <!-- System Status -->
+            <div class="status-grid">
+                <div class="status-card">
+                    <h3>System Status</h3>
+                    <div class="value status-online" id="system-status">Online</div>
+                    <div class="label">BRM API Connection</div>
+                </div>
+                <div class="status-card">
+                    <h3>Total Auctions</h3>
+                    <div class="value status-number" id="total-auctions">-</div>
+                    <div class="label">Available Markets</div>
+                </div>
+                <div class="status-card">
+                    <h3>Open Auctions</h3>
+                    <div class="value status-warning" id="open-auctions">-</div>
+                    <div class="label">Currently Bidding</div>
+                </div>
+                <div class="status-card">
+                    <h3>Completed</h3>
+                    <div class="value status-success" id="completed-auctions">-</div>
+                    <div class="label">Results Published</div>
+                </div>
+            </div>
+
+            <!-- Live Energy Auctions -->
+            <div class="market-section">
+                <h2>⚡ Live Energy Auctions <span class="refresh-indicator">Auto-refresh every 30s</span></h2>
+                <div class="loading" id="loading">Loading market data...</div>
+                <div id="auctions-container" class="auction-grid" style="display: none;"></div>
+            </div>
+
+            <!-- Day-Ahead Order Placement -->
+            <div class="order-section">
+                <h2>📋 Place Day-Ahead Order</h2>
+                <div class="order-form">
+                    <div>
+                        <div class="form-group">
+                            <label for="da-auction-select">Select Auction:</label>
+                            <select id="da-auction-select">
+                                <option value="">Loading auctions...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="da-order-name">Order Name:</label>
+                            <input type="text" id="da-order-name" placeholder="My Day-Ahead Order">
+                        </div>
+                        <div class="form-group">
+                            <label for="da-order-type">Order Type:</label>
+                            <select id="da-order-type">
+                                <option value="block">Block Order</option>
+                                <option value="curve">Curve Order</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group">
+                            <label for="da-price">Price (EUR/MWh):</label>
+                            <input type="number" id="da-price" step="0.01" placeholder="50.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="da-volume">Volume (MW):</label>
+                            <input type="number" id="da-volume" step="0.1" placeholder="-0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="da-contract-select">Contract:</label>
+                            <select id="da-contract-select">
+                                <option value="">Select auction first</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="order-buttons">
+                    <button class="btn btn-primary" onclick="placeDayAheadOrder()">Place Block Order</button>
+                    <button class="btn btn-success" onclick="placeCurveOrder()">Place Curve Order</button>
+                </div>
+                <div id="da-order-result"></div>
+            </div>
+        </div>
+
+        <!-- Intraday Market Tab -->
+        <div id="intraday-tab" class="tab-content">
+            <!-- Intraday Status -->
+            <div class="status-grid">
+                <div class="status-card">
+                    <h3>WebSocket Status</h3>
+                    <div class="value status-online" id="intraday-ws-status">Connecting...</div>
+                    <div class="label">Real-time Connection</div>
+                </div>
+                <div class="status-card">
+                    <h3>Active Contracts</h3>
+                    <div class="value status-number" id="intraday-contracts">-</div>
+                    <div class="label">Available for Trading</div>
+                </div>
+                <div class="status-card">
+                    <h3>Live Prices</h3>
+                    <div class="value status-warning" id="intraday-tickers">-</div>
+                    <div class="label">Real-time Quotes</div>
+                </div>
+                <div class="status-card">
+                    <h3>Recent Trades</h3>
+                    <div class="value status-success" id="intraday-trades">-</div>
+                    <div class="label">Last Hour</div>
+                </div>
+            </div>
+
+            <!-- Real-time Price Tickers -->
+            <div class="market-section">
+                <h2>📈 Real-time Price Tickers</h2>
+                <div id="intraday-tickers-container" class="intraday-ticker">
+                    <div class="loading">Connecting to intraday market...</div>
+                </div>
+            </div>
+
+            <!-- Intraday Contracts -->
+            <div class="market-section">
+                <h2>🔄 Intraday Contracts <span class="refresh-indicator">Live WebSocket Feed</span></h2>
+                <div id="intraday-contracts-container" class="auction-grid">
+                    <div class="loading">Loading intraday contracts...</div>
+                </div>
+            </div>
+
+            <!-- Intraday Order Placement -->
+            <div class="order-section">
+                <h2>⚡ Place Intraday Order</h2>
+                <div class="order-form">
+                    <div>
+                        <div class="form-group">
+                            <label for="id-contract-select">Select Contract:</label>
+                            <select id="id-contract-select">
+                                <option value="">Loading contracts...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="id-order-side">Order Side:</label>
+                            <select id="id-order-side">
+                                <option value="BUY">Buy</option>
+                                <option value="SELL">Sell</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="id-order-type">Order Type:</label>
+                            <select id="id-order-type">
+                                <option value="LIMIT">Limit Order</option>
+                                <option value="MARKET">Market Order</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group">
+                            <label for="id-price">Price (EUR/MWh):</label>
+                            <input type="number" id="id-price" step="0.01" placeholder="48.50">
+                        </div>
+                        <div class="form-group">
+                            <label for="id-quantity">Quantity (MW):</label>
+                            <input type="number" id="id-quantity" step="0.1" placeholder="1.0">
+                        </div>
+                        <div class="form-group">
+                            <label for="id-time-in-force">Time in Force:</label>
+                            <select id="id-time-in-force">
+                                <option value="GTC">Good Till Cancelled</option>
+                                <option value="IOC">Immediate or Cancel</option>
+                                <option value="FOK">Fill or Kill</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="order-buttons">
+                    <button class="btn btn-primary" onclick="placeIntradayOrder()">Place Intraday Order</button>
+                    <button class="btn btn-success" onclick="getIntradayOrderBook()">View Order Book</button>
+                </div>
+                <div id="id-order-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Load data for the selected tab
+            if (tabName === 'dayahead') {
+                loadDayAheadData();
+            } else if (tabName === 'intraday') {
+                loadIntradayData();
+            }
+        }
+
+        // Day-Ahead Market Functions
+        async function loadDayAheadData() {
+            try {
+                const response = await fetch('/api/market-data');
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateDayAheadStatus(data);
+                    displayDayAheadAuctions(data.auctions);
+                    populateAuctionSelects(data.auctions);
+                } else {
+                    showError('da-order-result', 'Failed to load market data: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error loading day-ahead data:', error);
+                showError('da-order-result', 'Error loading market data');
+            }
+        }
+
+        function updateDayAheadStatus(data) {
+            document.getElementById('total-auctions').textContent = data.total_auctions || 0;
+            document.getElementById('open-auctions').textContent = data.open_auctions || 0;
+            document.getElementById('completed-auctions').textContent = data.completed_auctions || 0;
+        }
+
+        function displayDayAheadAuctions(auctions) {
+            const container = document.getElementById('auctions-container');
+            const loading = document.getElementById('loading');
+            
+            if (!auctions || auctions.length === 0) {
+                container.innerHTML = '<div class="loading">No auctions available</div>';
+                return;
+            }
+            
+            container.innerHTML = auctions.map(auction => `
+                <div class="auction-card ${auction.state.toLowerCase().replace(' ', '-')}">
+                    <div class="auction-header">
+                        <div class="auction-id">${auction.id}</div>
+                        <div class="auction-status status-${auction.state.toLowerCase().replace(' ', '-')}">${auction.state}</div>
+                    </div>
+                    <div class="auction-description">${auction.description || auction.name}</div>
+                    <div class="auction-stats">
+                        <div class="stat">
+                            <div class="stat-value">${auction.orders || 0}</div>
+                            <div class="stat-label">Orders</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${auction.trades || 0}</div>
+                            <div class="stat-label">Trades</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${auction.prices || 0}</div>
+                            <div class="stat-label">Prices</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            loading.style.display = 'none';
+            container.style.display = 'grid';
+        }
+
+        function populateAuctionSelects(auctions) {
+            const select = document.getElementById('da-auction-select');
+            select.innerHTML = '<option value="">Select an auction</option>';
+            
+            auctions.filter(a => a.state === 'Open').forEach(auction => {
+                const option = document.createElement('option');
+                option.value = auction.id;
+                option.textContent = `${auction.id} - ${auction.name || auction.description}`;
+                select.appendChild(option);
+            });
+        }
+
+        // Intraday Market Functions
+        async function loadIntradayData() {
+            try {
+                // Load intraday market data
+                const response = await fetch('/api/intraday/market-data');
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateIntradayStatus(data);
+                    displayIntradayTickers(data.tickers || []);
+                    displayIntradayContracts(data.contracts || []);
+                    populateIntradayContractSelect(data.contracts || []);
+                } else {
+                    showError('id-order-result', 'Failed to load intraday data: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error loading intraday data:', error);
+                showError('id-order-result', 'Intraday market not yet implemented');
+                
+                // Show placeholder data
+                updateIntradayStatus({
+                    websocket_status: 'Connecting...',
+                    contracts_count: 0,
+                    tickers_count: 0,
+                    trades_count: 0
+                });
+            }
+        }
+
+        function updateIntradayStatus(data) {
+            document.getElementById('intraday-ws-status').textContent = data.websocket_status || 'Offline';
+            document.getElementById('intraday-contracts').textContent = data.contracts_count || 0;
+            document.getElementById('intraday-tickers').textContent = data.tickers_count || 0;
+            document.getElementById('intraday-trades').textContent = data.trades_count || 0;
+        }
+
+        function displayIntradayTickers(tickers) {
+            const container = document.getElementById('intraday-tickers-container');
+            
+            if (!tickers || tickers.length === 0) {
+                container.innerHTML = '<div class="loading">No live prices available</div>';
+                return;
+            }
+            
+            container.innerHTML = tickers.map(ticker => `
+                <div class="ticker-card">
+                    <div class="ticker-contract">${ticker.contract_id}</div>
+                    <div class="ticker-price">${ticker.last_price ? ticker.last_price.toFixed(2) : '--'}</div>
+                    <div class="ticker-change ${ticker.change >= 0 ? 'price-up' : 'price-down'}">
+                        ${ticker.change ? (ticker.change >= 0 ? '+' : '') + ticker.change.toFixed(2) + '%' : '--'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayIntradayContracts(contracts) {
+            const container = document.getElementById('intraday-contracts-container');
+            
+            if (!contracts || contracts.length === 0) {
+                container.innerHTML = '<div class="loading">No contracts available</div>';
+                return;
+            }
+            
+            container.innerHTML = contracts.map(contract => `
+                <div class="auction-card ${contract.status.toLowerCase()}">
+                    <div class="auction-header">
+                        <div class="auction-id">${contract.id}</div>
+                        <div class="auction-status status-${contract.status.toLowerCase()}">${contract.status}</div>
+                    </div>
+                    <div class="auction-description">${contract.name}</div>
+                    <div class="auction-stats">
+                        <div class="stat">
+                            <div class="stat-value">${contract.area_code}</div>
+                            <div class="stat-label">Area</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${contract.min_quantity}</div>
+                            <div class="stat-label">Min MW</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${contract.max_quantity}</div>
+                            <div class="stat-label">Max MW</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function populateIntradayContractSelect(contracts) {
+            const select = document.getElementById('id-contract-select');
+            select.innerHTML = '<option value="">Select a contract</option>';
+            
+            contracts.filter(c => c.status === 'Active').forEach(contract => {
+                const option = document.createElement('option');
+                option.value = contract.id;
+                option.textContent = `${contract.id} - ${contract.name}`;
+                select.appendChild(option);
+            });
+        }
+
+        // Order placement functions
+        async function placeDayAheadOrder() {
+            const orderData = {
+                auction_id: document.getElementById('da-auction-select').value,
+                name: document.getElementById('da-order-name').value,
+                price: parseFloat(document.getElementById('da-price').value),
+                contract_volumes: {}
+            };
+            
+            const contractId = document.getElementById('da-contract-select').value;
+            const volume = parseFloat(document.getElementById('da-volume').value);
+            
+            if (!orderData.auction_id || !orderData.name || !orderData.price || !contractId || !volume) {
+                showError('da-order-result', 'Please fill in all required fields');
+                return;
+            }
+            
+            orderData.contract_volumes[contractId] = volume;
+            
+            try {
+                const response = await fetch('/api/orders/block', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess('da-order-result', `Order placed successfully! Order ID: ${result.order_id}`);
+                } else {
+                    showError('da-order-result', 'Failed to place order: ' + result.error);
+                }
+            } catch (error) {
+                showError('da-order-result', 'Error placing order: ' + error.message);
+            }
+        }
+
+        async function placeIntradayOrder() {
+            showError('id-order-result', 'Intraday order placement will be implemented after obtaining intraday API credentials');
+        }
+
+        async function getIntradayOrderBook() {
+            showError('id-order-result', 'Intraday order book will be available after WebSocket integration');
+        }
+
+        // Utility functions
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function showSuccess(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="success">${message}</div>`;
+        }
+
+        // Auto-refresh for day-ahead market
+        setInterval(() => {
+            if (document.getElementById('dayahead-tab').classList.contains('active')) {
+                loadDayAheadData();
+            }
+        }, 30000);
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDayAheadData();
+        });
+
+        // Handle auction selection change
+        document.getElementById('da-auction-select').addEventListener('change', async function() {
+            const auctionId = this.value;
+            if (!auctionId) return;
+            
+            try {
+                const response = await fetch(`/api/auctions/${auctionId}/contracts`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const contractSelect = document.getElementById('da-contract-select');
+                    contractSelect.innerHTML = '<option value="">Select a contract</option>';
+                    
+                    data.contracts.forEach(contract => {
+                        const option = document.createElement('option');
+                        option.value = contract.id;
+                        option.textContent = `${contract.id} - ${contract.deliveryStart} to ${contract.deliveryEnd}`;
+                        contractSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading contracts:', error);
+            }
+        });
+    </script>
+</body>
+</html>

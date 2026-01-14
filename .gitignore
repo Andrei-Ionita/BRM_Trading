@@ -1,0 +1,29 @@
+# Windows reserved names
+nul
+NUL
+CON
+PRN
+AUX
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Secrets (don't commit credentials)
+.env.local
+secrets.json
