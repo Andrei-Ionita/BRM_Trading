@@ -3,7 +3,6 @@ builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-healthcheckPath = "/api/status"
-healthcheckTimeout = 300
+# No healthcheck - this is a background scheduler, not a web service
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 5
