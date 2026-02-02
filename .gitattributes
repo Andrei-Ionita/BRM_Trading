@@ -1,0 +1,4 @@
+# Ensure shell scripts have Unix line endings
+*.sh text eol=lf
+Dockerfile text eol=lf
+Procfile text eol=lf
