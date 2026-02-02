@@ -1,0 +1,1975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astro Solar Trading Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --border-color: #334155;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-yellow), var(--accent-green));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .logo-text span {
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .current-time {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: calc(100vh - 73px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            padding-left: 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0.25rem;
+            color: var(--text-secondary);
+        }
+
+        .nav-item:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .nav-icon {
+            font-size: 1.125rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            margin-top: auto;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-btn.primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #2563eb;
+        }
+
+        .action-btn.secondary {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .action-btn.secondary:hover {
+            background: #475569;
+        }
+
+        /* Content Area */
+        .content {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-icon.blue { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+        .stat-icon.green { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .stat-icon.yellow { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); }
+        .stat-icon.purple { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .stat-change {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .stat-change.positive { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .stat-change.negative { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+
+        /* Charts */
+        .chart-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chart-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-secondary);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chart-btn:hover, .chart-btn.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
+        .chart-wrapper {
+            height: 300px;
+            position: relative;
+        }
+
+        /* Table */
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .table-search {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            width: 200px;
+        }
+
+        .table-search:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 0.875rem 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table td {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table tr:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .table-scroll {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .interval-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .interval-badge.completed { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .interval-badge.active { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+        .interval-badge.pending { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
+
+        .imbalance-value {
+            font-weight: 500;
+        }
+
+        .imbalance-value.positive { color: var(--accent-green); }
+        .imbalance-value.negative { color: var(--accent-red); }
+
+        /* Workflow Panel */
+        .workflow-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .workflow-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .workflow-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .workflow-title {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .workflow-status.idle { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
+        .workflow-status.running { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+        .workflow-status.completed { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .workflow-status.error { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+
+        .workflow-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .workflow-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .workflow-info-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .workflow-info-value {
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .workflow-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .workflow-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .workflow-btn.run {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .workflow-btn.run:hover {
+            background: #2563eb;
+        }
+
+        .workflow-btn.dry-run {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .workflow-btn.dry-run:hover {
+            background: #475569;
+        }
+
+        .workflow-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Date Selector */
+        .date-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .date-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .date-btn:hover, .date-btn.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
+        .date-input {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border-radius: 6px;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast.success { border-left: 3px solid var(--accent-green); }
+        .toast.error { border-left: 3px solid var(--accent-red); }
+        .toast.info { border-left: 3px solid var(--accent-blue); }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .main-container { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .workflow-panel { grid-template-columns: 1fr; }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Log Container */
+        .log-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 1.5rem;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-primary);
+        }
+
+        .log-title {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .log-clear-btn {
+            padding: 0.375rem 0.75rem;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-secondary);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .log-clear-btn:hover {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+            color: white;
+        }
+
+        .log-output {
+            background: #0d1117;
+            color: #c9d1d9;
+            padding: 1rem 1.5rem;
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.8125rem;
+            line-height: 1.6;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .log-output::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .log-output::-webkit-scrollbar-track {
+            background: #161b22;
+        }
+
+        .log-output::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+
+        /* Alert Box */
+        .alert-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-red);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            color: var(--accent-red);
+            margin-top: 1.5rem;
+        }
+
+        .alert-box.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+        }
+
+        .alert-box.info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">&#9728;</div>
+            <div class="logo-text">Astro <span>Trading Dashboard</span></div>
+        </div>
+        <div class="header-right">
+            <div class="status-badge">
+                <div class="status-dot"></div>
+                <span id="connection-status">Connected</span>
+            </div>
+            <div class="current-time" id="current-time">--:--:--</div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav>
+                <div class="nav-section">
+                    <div class="nav-section-title">Overview</div>
+                    <div class="nav-item active" data-page="dashboard">
+                        <span class="nav-icon">&#128200;</span>
+                        Dashboard
+                    </div>
+                    <div class="nav-item" data-page="position">
+                        <span class="nav-icon">&#128176;</span>
+                        Position
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Trading</div>
+                    <div class="nav-item" data-page="day-ahead">
+                        <span class="nav-icon">&#128197;</span>
+                        Day-Ahead
+                    </div>
+                    <div class="nav-item" data-page="intraday">
+                        <span class="nav-icon">&#9889;</span>
+                        Intraday
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Analysis</div>
+                    <div class="nav-item" data-page="forecast">
+                        <span class="nav-icon">&#9729;</span>
+                        Forecast
+                    </div>
+                    <div class="nav-item" data-page="intervals">
+                        <span class="nav-icon">&#128202;</span>
+                        Intervals
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">System</div>
+                    <div class="nav-item" data-page="logs">
+                        <span class="nav-icon">&#128196;</span>
+                        Logs
+                    </div>
+                </div>
+            </nav>
+
+            <div class="quick-actions">
+                <button class="action-btn primary" id="btn-refresh">
+                    &#8635; Refresh Data
+                </button>
+            </div>
+        </aside>
+
+        <!-- Content -->
+        <main class="content">
+            <!-- Page: Dashboard -->
+            <div id="page-dashboard" class="page">
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Real-time overview of Astro solar trading operations</p>
+
+                <!-- Date Selector -->
+                <div class="date-selector">
+                    <button class="date-btn" id="btn-today">Today</button>
+                    <button class="date-btn active" id="btn-tomorrow">Tomorrow</button>
+                    <input type="date" class="date-input" id="date-picker">
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon blue">&#128197;</div>
+                        </div>
+                        <div class="stat-value" id="stat-interval">--</div>
+                        <div class="stat-label">Current Interval (CET)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon green">&#9889;</div>
+                        </div>
+                        <div class="stat-value" id="stat-contracted">-- MW</div>
+                        <div class="stat-label">Total Contracted</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon yellow">&#9728;</div>
+                        </div>
+                        <div class="stat-value" id="stat-forecast">-- MWh</div>
+                        <div class="stat-label">Forecast Production</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon purple">&#128200;</div>
+                        </div>
+                        <div class="stat-value" id="stat-remaining">--</div>
+                        <div class="stat-label">Remaining Intervals</div>
+                    </div>
+                </div>
+
+                <!-- Workflow Panels -->
+                <div class="workflow-panel">
+                    <!-- Day-Ahead -->
+                    <div class="workflow-card">
+                        <div class="workflow-header">
+                            <div class="workflow-title">
+                                &#128197; Day-Ahead Automation
+                            </div>
+                            <div class="workflow-status idle" id="da-status">Idle</div>
+                        </div>
+                        <div class="workflow-info">
+                            <div class="workflow-info-row">
+                                <span class="workflow-info-label">Target Date</span>
+                                <span class="workflow-info-value" id="da-target-date">--</span>
+                            </div>
+                            <div class="workflow-info-row">
+                                <span class="workflow-info-label">Last Run</span>
+                                <span class="workflow-info-value" id="da-last-run">Never</span>
+                            </div>
+                            <div class="workflow-info-row">
+                                <span class="workflow-info-label">Orders Submitted</span>
+                                <span class="workflow-info-value" id="da-orders">0</span>
+                            </div>
+                        </div>
+                        <div class="workflow-actions">
+                            <button class="workflow-btn dry-run" id="btn-da-dry">Dry Run</button>
+                            <button class="workflow-btn run" id="btn-da-run">Run DA</button>
+                        </div>
+                    </div>
+
+                    <!-- Intraday -->
+                    <div class="workflow-card">
+                        <div class="workflow-header">
+                            <div class="workflow-title">
+                                &#9889; Intraday Automation
+                            </div>
+                            <div class="workflow-status idle" id="intraday-status">Idle</div>
+                        </div>
+                        <div class="workflow-info">
+                            <div class="workflow-info-row">
+                                <span class="workflow-info-label">Delivery Date</span>
+                                <span class="workflow-info-value" id="intraday-date">--</span>
+                            </div>
+                            <div class="workflow-info-row">
+                                <span class="workflow-info-label">Last Check</span>
+                                <span class="workflow-info-value" id="intraday-last-run">Never</span>
+                            </div>
+                            <div class="workflow-info-row">
+                                <span class="workflow-info-label">Trades Today</span>
+                                <span class="workflow-info-value" id="intraday-trades">0</span>
+                            </div>
+                        </div>
+                        <div class="workflow-actions">
+                            <button class="workflow-btn dry-run" id="btn-intraday-dry">Dry Run</button>
+                            <button class="workflow-btn run" id="btn-intraday-run">Check Now</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Production Profile</h3>
+                        <div class="chart-actions">
+                            <button class="chart-btn" data-chart="forecast">Forecast</button>
+                            <button class="chart-btn" data-chart="contracted">Contracted</button>
+                            <button class="chart-btn active" data-chart="both">Both</button>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="main-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Position -->
+            <div id="page-position" class="page" style="display: none;">
+                <h1 class="page-title">Position Details</h1>
+                <p class="page-subtitle">Detailed view of contracted positions and trading activity</p>
+
+                <div class="date-selector">
+                    <button class="date-btn" id="pos-btn-today">Today</button>
+                    <button class="date-btn active" id="pos-btn-tomorrow">Tomorrow</button>
+                </div>
+
+                <!-- Position Stats -->
+                <div class="stats-grid" style="grid-template-columns: repeat(5, 1fr);">
+                    <div class="stat-card">
+                        <div class="stat-value" id="pos-da-sold">--</div>
+                        <div class="stat-label">DA Sold (MW)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="pos-idm-sold">--</div>
+                        <div class="stat-label">IDM Sold (MW)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="pos-idm-bought">--</div>
+                        <div class="stat-label">IDM Bought (MW)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="pos-net-idm">--</div>
+                        <div class="stat-label">Net IDM (MW)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="pos-total">--</div>
+                        <div class="stat-label">Total Contracted (MW)</div>
+                    </div>
+                </div>
+
+                <!-- Position Table -->
+                <div class="table-container" style="margin-top: 1.5rem;">
+                    <div class="table-header">
+                        <h3 class="table-title">Position by Interval</h3>
+                        <input type="text" class="table-search" placeholder="Search intervals..." id="position-search">
+                    </div>
+                    <div class="table-scroll">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Interval</th>
+                                    <th>Time</th>
+                                    <th>DA Sold</th>
+                                    <th>IDM Sell</th>
+                                    <th>IDM Buy</th>
+                                    <th>Net Position</th>
+                                </tr>
+                            </thead>
+                            <tbody id="position-table-body">
+                                <!-- Filled by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Intervals -->
+            <div id="page-intervals" class="page" style="display: none;">
+                <h1 class="page-title">Interval Details</h1>
+                <p class="page-subtitle">96 quarter-hour intervals with position and forecast data</p>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">All Intervals</h3>
+                        <input type="text" class="table-search" placeholder="Search intervals..." id="interval-search">
+                    </div>
+                    <div class="table-scroll">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Interval</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>DA Sold</th>
+                                    <th>IDM Sold</th>
+                                    <th>IDM Bought</th>
+                                    <th>Contracted</th>
+                                    <th>Forecast</th>
+                                    <th>Imbalance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="intervals-table-body">
+                                <!-- Filled by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Forecast -->
+            <div id="page-forecast" class="page" style="display: none;">
+                <h1 class="page-title">Forecast</h1>
+                <p class="page-subtitle">Solar production forecast from Solcast + XGBoost model</p>
+
+                <div class="date-selector">
+                    <button class="date-btn" id="fc-btn-today">Today</button>
+                    <button class="date-btn active" id="fc-btn-tomorrow">Tomorrow</button>
+                    <input type="date" class="date-input" id="fc-date-picker">
+                    <button class="action-btn primary" id="fc-fetch-btn" style="margin-left: auto;">
+                        &#8635; Fetch New Forecast
+                    </button>
+                </div>
+
+                <!-- Forecast Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon yellow">&#9728;</div>
+                        </div>
+                        <div class="stat-value" id="fc-total-mwh">-- MWh</div>
+                        <div class="stat-label">Total Production</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon green">&#9650;</div>
+                        </div>
+                        <div class="stat-value" id="fc-peak-mw">-- MW</div>
+                        <div class="stat-label">Peak Power</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon blue">&#128197;</div>
+                        </div>
+                        <div class="stat-value" id="fc-peak-interval">--</div>
+                        <div class="stat-label">Peak Interval</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon purple">&#128202;</div>
+                        </div>
+                        <div class="stat-value" id="fc-count">--</div>
+                        <div class="stat-label">Intervals with Production</div>
+                    </div>
+                </div>
+
+                <!-- Forecast Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Forecast Profile</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="forecast-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Error/Info Box with Action -->
+                <div id="fc-error-container" class="alert-box info" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span id="fc-error-text"></span>
+                        <button class="action-btn primary" id="fc-fetch-btn2" style="margin-left: 1rem; white-space: nowrap;">
+                            &#8635; Fetch New Forecast
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Logs -->
+            <div id="page-logs" class="page" style="display: none;">
+                <h1 class="page-title">System Logs</h1>
+                <p class="page-subtitle">Real-time automation logs and debugging information</p>
+
+                <div class="log-container">
+                    <div class="log-header">
+                        <h3 class="log-title">&#128196; Activity Log</h3>
+                        <div>
+                            <button class="log-clear-btn" id="logs-refresh" style="margin-right: 0.5rem;">&#8635; Refresh</button>
+                            <button class="log-clear-btn" id="logs-clear">Clear</button>
+                        </div>
+                    </div>
+                    <pre class="log-output" id="logs-output" style="min-height: 400px; max-height: 600px;">Loading logs...</pre>
+                </div>
+            </div>
+
+            <!-- Page: Day-Ahead -->
+            <div id="page-day-ahead" class="page" style="display: none;">
+                <h1 class="page-title">Day-Ahead Automation</h1>
+                <p class="page-subtitle">Forecast submission to Day-Ahead market</p>
+
+                <div class="workflow-panel" style="grid-template-columns: 1fr;">
+                    <div class="workflow-card">
+                        <div class="workflow-header">
+                            <div class="workflow-title">&#128197; DA Status</div>
+                            <div class="workflow-status idle" id="da-page-status">Idle</div>
+                        </div>
+                        <div class="workflow-info">
+                            <div class="workflow-info-row">
+                                <span class="workflow-info-label">Target Date</span>
+                                <span class="workflow-info-value" id="da-page-date">--</span>
+                            </div>
+                            <div class="workflow-info-row">
+                                <span class="workflow-info-label">Last Run</span>
+                                <span class="workflow-info-value" id="da-page-last-run">Never</span>
+                            </div>
+                        </div>
+                        <div class="workflow-actions">
+                            <button class="workflow-btn dry-run" id="da-page-dry">Dry Run</button>
+                            <button class="workflow-btn run" id="da-page-run">Submit Orders</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DA Output Log -->
+                <div class="log-container">
+                    <div class="log-header">
+                        <h3 class="log-title">&#128196; Output Log</h3>
+                        <button class="log-clear-btn" id="da-clear-output">Clear</button>
+                    </div>
+                    <pre class="log-output" id="da-output">Waiting for automation run...</pre>
+                </div>
+            </div>
+
+            <!-- Page: Intraday -->
+            <div id="page-intraday" class="page" style="display: none;">
+                <h1 class="page-title">Intraday Automation</h1>
+                <p class="page-subtitle">Real-time imbalance monitoring and trading</p>
+
+                <div class="workflow-panel" style="grid-template-columns: 1fr;">
+                    <div class="workflow-card">
+                        <div class="workflow-header">
+                            <div class="workflow-title">&#9889; Intraday Status</div>
+                            <div class="workflow-status idle" id="intraday-page-status">Idle</div>
+                        </div>
+                        <div class="workflow-info">
+                            <div class="workflow-info-row">
+                                <span class="workflow-info-label">Delivery Date</span>
+                                <span class="workflow-info-value" id="intraday-page-date">--</span>
+                            </div>
+                            <div class="workflow-info-row">
+                                <span class="workflow-info-label">Last Check</span>
+                                <span class="workflow-info-value" id="intraday-page-last-run">Never</span>
+                            </div>
+                        </div>
+                        <div class="workflow-actions">
+                            <button class="workflow-btn dry-run" id="intraday-page-dry">Dry Run</button>
+                            <button class="workflow-btn run" id="intraday-page-run">Check Now</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Intraday Output Log -->
+                <div class="log-container">
+                    <div class="log-header">
+                        <h3 class="log-title">&#128196; Output Log</h3>
+                        <button class="log-clear-btn" id="intraday-clear-output">Clear</button>
+                    </div>
+                    <pre class="log-output" id="intraday-output">Waiting for automation run...</pre>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        // State
+        let currentDate = getTomorrow();
+        let chartInstance = null;
+        let chartMode = 'both';  // 'forecast', 'contracted', or 'both'
+        let lastChartData = null;  // Store chart data for mode switching
+
+        // Helpers
+        function getToday() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function getTomorrow() {
+            const d = new Date();
+            d.setDate(d.getDate() + 1);
+            return d.toISOString().split('T')[0];
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        function formatTime(date) {
+            return new Date(date).toLocaleTimeString('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // API Functions
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+
+                document.getElementById('current-time').textContent = data.current_time;
+                document.getElementById('stat-interval').textContent =
+                    `${data.current_interval} (${data.current_interval_time})`;
+                document.getElementById('stat-remaining').textContent = data.remaining_intervals;
+
+                // Update workflow statuses
+                updateWorkflowStatus('da', data.da_status);
+                updateWorkflowStatus('intraday', data.intraday_status);
+
+                document.getElementById('da-target-date').textContent = data.tomorrow;
+                document.getElementById('intraday-date').textContent = data.today;
+
+            } catch (e) {
+                console.error('Status fetch error:', e);
+            }
+        }
+
+        async function fetchPosition(date) {
+            try {
+                const res = await fetch(`/api/position/${date}`);
+                const data = await res.json();
+
+                document.getElementById('stat-contracted').textContent = `${data.total_contracted} MW`;
+
+                // Update DA workflow card with position data
+                document.getElementById('da-orders').textContent = data.intervals_with_position || 0;
+                if (data.last_updated) {
+                    document.getElementById('da-last-run').textContent = new Date(data.last_updated).toLocaleString();
+                }
+
+                // Position page stats
+                document.getElementById('pos-da-sold').textContent = data.total_da_sold;
+                document.getElementById('pos-idm-sold').textContent = data.total_idm_sold;
+                document.getElementById('pos-idm-bought').textContent = data.total_idm_bought;
+                document.getElementById('pos-net-idm').textContent = data.net_idm;
+                document.getElementById('pos-total').textContent = data.total_contracted;
+
+            } catch (e) {
+                console.error('Position fetch error:', e);
+            }
+        }
+
+        async function fetchForecast(date) {
+            try {
+                const res = await fetch(`/api/forecast/${date}`);
+                const data = await res.json();
+
+                document.getElementById('stat-forecast').textContent = `${data.total_mwh} MWh`;
+
+            } catch (e) {
+                console.error('Forecast fetch error:', e);
+            }
+        }
+
+        async function fetchChartData(date) {
+            try {
+                const res = await fetch(`/api/chart/${date}`);
+                const data = await res.json();
+
+                updateChart(data);
+
+            } catch (e) {
+                console.error('Chart fetch error:', e);
+            }
+        }
+
+        async function fetchIntervals(date) {
+            try {
+                const res = await fetch(`/api/intervals/${date}`);
+                const data = await res.json();
+
+                renderIntervalsTable(data);
+
+            } catch (e) {
+                console.error('Intervals fetch error:', e);
+            }
+        }
+
+        function updateWorkflowStatus(type, status) {
+            const el = document.getElementById(`${type === 'da' ? 'da' : 'intraday'}-status`);
+            el.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+            el.className = `workflow-status ${status}`;
+        }
+
+        function updateChart(data, mode = null) {
+            // Save data for mode switching
+            if (data) {
+                lastChartData = data;
+            } else {
+                data = lastChartData;
+            }
+            if (!data) return;
+
+            // Use provided mode or current chartMode
+            if (mode) chartMode = mode;
+
+            const ctx = document.getElementById('main-chart').getContext('2d');
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            // Build datasets based on mode
+            const datasets = [];
+
+            if (chartMode === 'forecast' || chartMode === 'both') {
+                datasets.push({
+                    label: 'Forecast (MW)',
+                    data: data.datasets.forecast,
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0,
+                    borderWidth: 2
+                });
+            }
+
+            if (chartMode === 'contracted' || chartMode === 'both') {
+                datasets.push({
+                    label: 'Contracted (MW)',
+                    data: data.datasets.contracted,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    fill: chartMode === 'contracted',  // Only fill when showing alone
+                    tension: 0.3,
+                    pointRadius: 0,
+                    borderWidth: 3,  // Thicker line to show on top
+                    borderDash: chartMode === 'both' ? [5, 5] : []  // Dashed when showing both
+                });
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#94a3b8',
+                                usePointStyle: true
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#334155' },
+                            ticks: {
+                                color: '#64748b',
+                                maxTicksLimit: 12
+                            }
+                        },
+                        y: {
+                            grid: { color: '#334155' },
+                            ticks: { color: '#64748b' },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderIntervalsTable(intervals) {
+            const tbody = document.getElementById('intervals-table-body');
+            tbody.innerHTML = '';
+
+            intervals.forEach(interval => {
+                const row = document.createElement('tr');
+
+                const imbalanceClass = interval.imbalance > 0 ? 'positive' :
+                                       interval.imbalance < 0 ? 'negative' : '';
+
+                row.innerHTML = `
+                    <td><strong>${interval.interval}</strong></td>
+                    <td>${interval.time}</td>
+                    <td><span class="interval-badge ${interval.status}">${interval.status}</span></td>
+                    <td>${interval.da_sold.toFixed(3)}</td>
+                    <td>${interval.idm_sold.toFixed(3)}</td>
+                    <td>${interval.idm_bought.toFixed(3)}</td>
+                    <td><strong>${interval.contracted.toFixed(3)}</strong></td>
+                    <td>${interval.forecast_mw.toFixed(3)}</td>
+                    <td><span class="imbalance-value ${imbalanceClass}">${interval.imbalance.toFixed(3)}</span></td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Refresh all data
+        async function refreshAll() {
+            await Promise.all([
+                fetchStatus(),
+                fetchPosition(currentDate),
+                fetchForecast(currentDate),
+                fetchChartData(currentDate),
+                fetchIntervals(currentDate)
+            ]);
+        }
+
+        // Event Listeners
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+
+                const page = item.dataset.page;
+                document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+
+                const pageEl = document.getElementById(`page-${page}`);
+                if (pageEl) pageEl.style.display = 'block';
+            });
+        });
+
+        document.getElementById('btn-today').addEventListener('click', () => {
+            currentDate = getToday();
+            document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-today').classList.add('active');
+            refreshAll();
+        });
+
+        document.getElementById('btn-tomorrow').addEventListener('click', () => {
+            currentDate = getTomorrow();
+            document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-tomorrow').classList.add('active');
+            refreshAll();
+        });
+
+        document.getElementById('date-picker').addEventListener('change', (e) => {
+            currentDate = e.target.value;
+            document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+            refreshAll();
+        });
+
+        document.getElementById('btn-refresh').addEventListener('click', () => {
+            showToast('Refreshing data...', 'info');
+            refreshAll().then(() => showToast('Data refreshed!', 'success'));
+        });
+
+        // Chart mode buttons
+        document.querySelectorAll('.chart-btn[data-chart]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active state
+                document.querySelectorAll('.chart-btn[data-chart]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Update chart with new mode
+                const mode = btn.dataset.chart;
+                updateChart(null, mode);
+            });
+        });
+
+        // DA Actions
+        document.getElementById('btn-da-dry').addEventListener('click', async () => {
+            showToast('Starting DA dry run...', 'info');
+            const res = await fetch('/api/run/da', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dry_run: true, date: getTomorrow() })
+            });
+            const data = await res.json();
+            showToast(`DA dry run started for ${data.date}`, 'success');
+        });
+
+        document.getElementById('btn-da-run').addEventListener('click', async () => {
+            if (!confirm('Run DA automation? This will submit orders to the market.')) return;
+
+            showToast('Starting DA automation...', 'info');
+            const res = await fetch('/api/run/da', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dry_run: false, date: getTomorrow() })
+            });
+            const data = await res.json();
+            showToast(`DA automation started for ${data.date}`, 'success');
+        });
+
+        // Intraday Actions
+        document.getElementById('btn-intraday-dry').addEventListener('click', async () => {
+            showToast('Starting intraday dry run...', 'info');
+            const res = await fetch('/api/run/intraday', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dry_run: true, date: getToday() })
+            });
+            const data = await res.json();
+            showToast(`Intraday dry run started`, 'success');
+        });
+
+        document.getElementById('btn-intraday-run').addEventListener('click', async () => {
+            if (!confirm('Run intraday check? This will place orders if imbalances are found.')) return;
+
+            showToast('Starting intraday check...', 'info');
+            const res = await fetch('/api/run/intraday', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dry_run: false, date: getToday() })
+            });
+            const data = await res.json();
+            showToast(`Intraday check started`, 'success');
+        });
+
+        // Interval search
+        document.getElementById('interval-search').addEventListener('input', (e) => {
+            const search = e.target.value.toLowerCase();
+            document.querySelectorAll('#intervals-table-body tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(search) ? '' : 'none';
+            });
+        });
+
+        // ==================== Forecast Page ====================
+        let forecastChart = null;
+
+        async function fetchForecastPage(date) {
+            try {
+                const res = await fetch(`/api/forecast/${date}`);
+                const data = await res.json();
+
+                // Update stats
+                document.getElementById('fc-total-mwh').textContent = `${data.total_mwh || 0} MWh`;
+                document.getElementById('fc-peak-mw').textContent = `${data.peak_mw || 0} MW`;
+                document.getElementById('fc-peak-interval').textContent = data.peak_interval || '--';
+                document.getElementById('fc-count').textContent = data.count || 0;
+
+                // Show error/info box if needed
+                const errorContainer = document.getElementById('fc-error-container');
+                const errorText = document.getElementById('fc-error-text');
+                if (data.error) {
+                    errorText.textContent = data.error;
+                    errorContainer.style.display = 'block';
+                } else if (!data.intervals || data.intervals.length === 0) {
+                    errorText.textContent = 'No forecast data available. Click to fetch new data.';
+                    errorContainer.style.display = 'block';
+                } else {
+                    errorContainer.style.display = 'none';
+                }
+
+                // Update chart
+                if (data.intervals && data.intervals.length > 0) {
+                    const labels = data.intervals.map(i => `${Math.floor((i-1)/4)}:${((i-1)%4)*15 || '00'}`);
+                    updateForecastChart(labels, data.values_mw);
+                }
+
+            } catch (e) {
+                console.error('Forecast page fetch error:', e);
+            }
+        }
+
+        function updateForecastChart(labels, values) {
+            const ctx = document.getElementById('forecast-chart');
+            if (!ctx) return;
+
+            if (forecastChart) {
+                forecastChart.destroy();
+            }
+
+            forecastChart = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Forecast (MW)',
+                        data: values,
+                        backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                        borderColor: '#f59e0b',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#94a3b8' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#334155' },
+                            ticks: { color: '#64748b', maxTicksLimit: 16 }
+                        },
+                        y: {
+                            grid: { color: '#334155' },
+                            ticks: { color: '#64748b' },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Forecast page date buttons
+        document.getElementById('fc-btn-today')?.addEventListener('click', () => {
+            currentDate = getToday();
+            document.querySelectorAll('#page-forecast .date-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('fc-btn-today').classList.add('active');
+            fetchForecastPage(currentDate);
+        });
+
+        document.getElementById('fc-btn-tomorrow')?.addEventListener('click', () => {
+            currentDate = getTomorrow();
+            document.querySelectorAll('#page-forecast .date-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('fc-btn-tomorrow').classList.add('active');
+            fetchForecastPage(currentDate);
+        });
+
+        document.getElementById('fc-date-picker')?.addEventListener('change', (e) => {
+            currentDate = e.target.value;
+            document.querySelectorAll('#page-forecast .date-btn').forEach(b => b.classList.remove('active'));
+            fetchForecastPage(currentDate);
+        });
+
+        // Fetch New Forecast button handler
+        async function triggerForecastFetch(btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Fetching...';
+            showToast('Fetching new forecast from Solcast...', 'info');
+
+            try {
+                await fetch('/api/run/forecast', { method: 'POST' });
+
+                // Poll for completion
+                const pollInterval = setInterval(async () => {
+                    const res = await fetch('/api/forecast/status');
+                    const data = await res.json();
+
+                    if (data.status !== 'running') {
+                        clearInterval(pollInterval);
+                        btn.disabled = false;
+                        btn.innerHTML = '&#8635; Fetch New Forecast';
+
+                        if (data.status === 'completed') {
+                            showToast('Forecast updated successfully!', 'success');
+                            fetchForecastPage(currentDate);
+                            refreshAll();
+                        } else {
+                            showToast('Forecast fetch failed. Check logs.', 'error');
+                        }
+                    }
+                }, 2000);
+
+            } catch (e) {
+                btn.disabled = false;
+                btn.innerHTML = '&#8635; Fetch New Forecast';
+                showToast('Error fetching forecast', 'error');
+            }
+        }
+
+        // Wire up both fetch buttons
+        document.getElementById('fc-fetch-btn')?.addEventListener('click', function() {
+            triggerForecastFetch(this);
+        });
+        document.getElementById('fc-fetch-btn2')?.addEventListener('click', function() {
+            triggerForecastFetch(this);
+        });
+
+        // ==================== DA Page ====================
+        async function fetchDAOutput() {
+            try {
+                const res = await fetch('/api/output/da');
+                const data = await res.json();
+
+                const outputEl = document.getElementById('da-output');
+                if (data.output) {
+                    outputEl.textContent = data.output;
+                    outputEl.scrollTop = outputEl.scrollHeight;
+                }
+
+                // Update status on page
+                const statusEl = document.getElementById('da-page-status');
+                if (statusEl) {
+                    statusEl.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                    statusEl.className = `workflow-status ${data.status}`;
+                }
+
+            } catch (e) {
+                console.error('DA output fetch error:', e);
+            }
+        }
+
+        // DA page buttons
+        document.getElementById('da-page-dry')?.addEventListener('click', async () => {
+            showToast('Starting DA dry run...', 'info');
+            document.getElementById('da-output').textContent = 'Starting DA dry run...\n';
+
+            const res = await fetch('/api/run/da', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dry_run: true, date: getTomorrow() })
+            });
+
+            // Start polling for output
+            const pollInterval = setInterval(async () => {
+                await fetchDAOutput();
+                const statusRes = await fetch('/api/status');
+                const status = await statusRes.json();
+                if (status.da_status !== 'running') {
+                    clearInterval(pollInterval);
+                    showToast('DA dry run completed!', 'success');
+                    refreshAll();
+                }
+            }, 1000);
+        });
+
+        document.getElementById('da-page-run')?.addEventListener('click', async () => {
+            if (!confirm('Submit orders to Day-Ahead market?')) return;
+
+            showToast('Starting DA automation...', 'info');
+            document.getElementById('da-output').textContent = 'Starting DA automation...\n';
+
+            await fetch('/api/run/da', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dry_run: false, date: getTomorrow() })
+            });
+
+            const pollInterval = setInterval(async () => {
+                await fetchDAOutput();
+                const statusRes = await fetch('/api/status');
+                const status = await statusRes.json();
+                if (status.da_status !== 'running') {
+                    clearInterval(pollInterval);
+                    showToast('DA automation completed!', 'success');
+                    refreshAll();
+                }
+            }, 1000);
+        });
+
+        document.getElementById('da-clear-output')?.addEventListener('click', () => {
+            document.getElementById('da-output').textContent = 'Cleared.';
+        });
+
+        // ==================== Intraday Page ====================
+        async function fetchIntradayOutput() {
+            try {
+                const res = await fetch('/api/output/intraday');
+                const data = await res.json();
+
+                const outputEl = document.getElementById('intraday-output');
+                if (data.output) {
+                    outputEl.textContent = data.output;
+                    outputEl.scrollTop = outputEl.scrollHeight;
+                }
+
+                const statusEl = document.getElementById('intraday-page-status');
+                if (statusEl) {
+                    statusEl.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                    statusEl.className = `workflow-status ${data.status}`;
+                }
+
+            } catch (e) {
+                console.error('Intraday output fetch error:', e);
+            }
+        }
+
+        document.getElementById('intraday-page-dry')?.addEventListener('click', async () => {
+            showToast('Starting intraday dry run...', 'info');
+            document.getElementById('intraday-output').textContent = 'Starting intraday dry run...\n';
+
+            await fetch('/api/run/intraday', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dry_run: true, date: getToday() })
+            });
+
+            const pollInterval = setInterval(async () => {
+                await fetchIntradayOutput();
+                const statusRes = await fetch('/api/status');
+                const status = await statusRes.json();
+                if (status.intraday_status !== 'running') {
+                    clearInterval(pollInterval);
+                    showToast('Intraday dry run completed!', 'success');
+                    refreshAll();
+                }
+            }, 1000);
+        });
+
+        document.getElementById('intraday-page-run')?.addEventListener('click', async () => {
+            if (!confirm('Run intraday check? This may place orders.')) return;
+
+            showToast('Starting intraday check...', 'info');
+            document.getElementById('intraday-output').textContent = 'Starting intraday check...\n';
+
+            await fetch('/api/run/intraday', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dry_run: false, date: getToday() })
+            });
+
+            const pollInterval = setInterval(async () => {
+                await fetchIntradayOutput();
+                const statusRes = await fetch('/api/status');
+                const status = await statusRes.json();
+                if (status.intraday_status !== 'running') {
+                    clearInterval(pollInterval);
+                    showToast('Intraday check completed!', 'success');
+                    refreshAll();
+                }
+            }, 1000);
+        });
+
+        document.getElementById('intraday-clear-output')?.addEventListener('click', () => {
+            document.getElementById('intraday-output').textContent = 'Cleared.';
+        });
+
+        // ==================== Update Page Info ====================
+        function updatePageInfo(status) {
+            // DA page info
+            document.getElementById('da-page-date')?.textContent &&
+                (document.getElementById('da-page-date').textContent = status.tomorrow);
+            document.getElementById('da-page-last-run')?.textContent &&
+                (document.getElementById('da-page-last-run').textContent = status.last_da_run ?
+                    new Date(status.last_da_run).toLocaleString() : 'Never');
+
+            // Intraday page info
+            document.getElementById('intraday-page-date')?.textContent &&
+                (document.getElementById('intraday-page-date').textContent = status.today);
+            document.getElementById('intraday-page-last-run')?.textContent &&
+                (document.getElementById('intraday-page-last-run').textContent = status.last_intraday_run ?
+                    new Date(status.last_intraday_run).toLocaleString() : 'Never');
+        }
+
+        // ==================== Logs Page ====================
+        async function fetchLogs() {
+            try {
+                const res = await fetch('/api/logs');
+                const logs = await res.json();
+
+                const output = document.getElementById('logs-output');
+                if (logs.length === 0) {
+                    output.textContent = 'No logs yet.';
+                    return;
+                }
+
+                const formatted = logs.map(log => {
+                    const levelColors = {
+                        'DEBUG': '#64748b',
+                        'INFO': '#3b82f6',
+                        'SUCCESS': '#10b981',
+                        'WARNING': '#f59e0b',
+                        'ERROR': '#ef4444'
+                    };
+                    const color = levelColors[log.level] || '#94a3b8';
+                    return `[${log.timestamp}] [${log.level}] ${log.message}`;
+                }).join('\n');
+
+                output.textContent = formatted;
+                output.scrollTop = output.scrollHeight;
+
+            } catch (e) {
+                console.error('Logs fetch error:', e);
+            }
+        }
+
+        document.getElementById('logs-refresh')?.addEventListener('click', fetchLogs);
+
+        document.getElementById('logs-clear')?.addEventListener('click', async () => {
+            await fetch('/api/logs/clear', { method: 'POST' });
+            document.getElementById('logs-output').textContent = 'Logs cleared.';
+        });
+
+        // ==================== Position Page ====================
+        async function fetchPositionTable(date) {
+            try {
+                const res = await fetch(`/api/intervals/${date}`);
+                const intervals = await res.json();
+
+                renderPositionTable(intervals);
+
+            } catch (e) {
+                console.error('Position table fetch error:', e);
+            }
+        }
+
+        function renderPositionTable(intervals) {
+            const tbody = document.getElementById('position-table-body');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+
+            intervals.forEach(interval => {
+                const row = document.createElement('tr');
+
+                // Calculate net position: DA + IDM Sell - IDM Buy
+                const netPosition = interval.da_sold + interval.idm_sold - interval.idm_bought;
+
+                // Highlight rows with non-zero position
+                const hasPosition = netPosition > 0;
+
+                row.innerHTML = `
+                    <td><strong>${interval.interval}</strong></td>
+                    <td>${interval.time}</td>
+                    <td>${interval.da_sold.toFixed(2)}</td>
+                    <td>${interval.idm_sold.toFixed(2)}</td>
+                    <td>${interval.idm_bought.toFixed(2)}</td>
+                    <td><strong style="color: ${hasPosition ? 'var(--accent-green)' : 'inherit'}">${netPosition.toFixed(2)}</strong></td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Position page date buttons
+        document.getElementById('pos-btn-today')?.addEventListener('click', () => {
+            currentDate = getToday();
+            document.querySelectorAll('#page-position .date-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('pos-btn-today').classList.add('active');
+            fetchPosition(currentDate);
+            fetchPositionTable(currentDate);
+        });
+
+        document.getElementById('pos-btn-tomorrow')?.addEventListener('click', () => {
+            currentDate = getTomorrow();
+            document.querySelectorAll('#page-position .date-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('pos-btn-tomorrow').classList.add('active');
+            fetchPosition(currentDate);
+            fetchPositionTable(currentDate);
+        });
+
+        // Position table search
+        document.getElementById('position-search')?.addEventListener('input', (e) => {
+            const search = e.target.value.toLowerCase();
+            document.querySelectorAll('#position-table-body tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(search) ? '' : 'none';
+            });
+        });
+
+        // Update nav to load page data
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const page = item.dataset.page;
+                if (page === 'forecast') {
+                    fetchForecastPage(currentDate);
+                } else if (page === 'day-ahead') {
+                    fetchDAOutput();
+                } else if (page === 'intraday') {
+                    fetchIntradayOutput();
+                } else if (page === 'logs') {
+                    fetchLogs();
+                } else if (page === 'position') {
+                    fetchPosition(currentDate);
+                    fetchPositionTable(currentDate);
+                }
+            });
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('date-picker').value = currentDate;
+            refreshAll();
+
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                fetchStatus().then(() => {
+                    fetch('/api/status').then(r => r.json()).then(updatePageInfo);
+                });
+            }, 30000);
+
+            // Full refresh every 2 minutes
+            setInterval(() => {
+                refreshAll();
+            }, 120000);
+        });
+    </script>
+</body>
+</html>

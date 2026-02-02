@@ -26,4 +26,19 @@ ENV/
 
 # Secrets (don't commit credentials)
 .env.local
+.env.production
 secrets.json
+*.pem
+*.key
+
+# Temp files
+tmpclaude-*
+*.tmp
+
+# Position file (generated at runtime)
+# da_position.json is in Portfolio folder
+
+# Test files (optional - remove if you want to include)
+test_*.py
+*_test.py
+debug_*.py

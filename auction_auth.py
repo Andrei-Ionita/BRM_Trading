@@ -44,20 +44,19 @@ class BRMAuctionAuth:
         self.token_url = "https://sso.test.brm-power.ro/connect/token"
         self.current_token: Optional[TokenInfo] = None
         
-        # Auction API credentials (from Swagger UI)
-        self.client_id = "client_auction_api"
-        self.client_secret = "1xB9Ik1xsEu2nbwVa1BR"  # Same secret as intraday
-        self.username = "Test_IntradayAPI_ADREM"  # Same username
-        self.password = "nR(B8fDY{485Nq4mu"  # Same password with special chars
-        self.scope = "auction_api"  # Auction API scope
+        # Auction API credentials (different from intraday!)
+        self.username = "Test_AuctionAPI_ADREM"
+        self.password = "odvM6{=15HW1s%H1Wb"
+        self.scope = "auction_api"
+
+        # Basic Auth: client_auction_api:client_auction_api
+        self.basic_auth_header = "Basic Y2xpZW50X2F1Y3Rpb25fYXBpOmNsaWVudF9hdWN0aW9uX2FwaQ=="
         
         logger.info("BRM Auction API Authentication initialized")
     
     def get_basic_auth_header(self) -> str:
         """Get Basic authentication header for client credentials"""
-        credentials = f"{self.client_id}:{self.client_secret}"
-        encoded = base64.b64encode(credentials.encode()).decode()
-        return f"Basic {encoded}"
+        return self.basic_auth_header
     
     async def get_token_async(self) -> TokenInfo:
         """Get or refresh the authentication token"""

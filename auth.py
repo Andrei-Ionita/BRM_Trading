@@ -1,6 +1,6 @@
 """
 Authentication module for BRM Trading Bot
-Handles OAuth2 token acquisition and refresh
+Handles OAuth2 token acquisition and refresh for Day-Ahead (Auction) API
 """
 import asyncio
 import logging
@@ -23,13 +23,13 @@ class TokenInfo:
     expires_in: int
     expires_at: datetime
     scope: Optional[str] = None
-    
+
     @property
     def is_expired(self) -> bool:
         """Check if token is expired or will expire soon"""
         buffer_time = timedelta(minutes=config.token_refresh_buffer_minutes)
         return datetime.now() >= (self.expires_at - buffer_time)
-    
+
     @property
     def bearer_token(self) -> str:
         """Get the token formatted for Authorization header"""
@@ -37,33 +37,47 @@ class TokenInfo:
 
 
 class BRMAuthenticator:
-    """Handles authentication with BRM SSO service"""
-    
-    def __init__(self, client_id: str, client_secret: str):
-        self.client_id = client_id
-        self.client_secret = client_secret
+    """Handles authentication with BRM SSO service for Auction API"""
+
+    def __init__(self, client_id: str = None, client_secret: str = None):
+        import base64
+
+        # Auction API credentials (different client_id than intraday)
+        self.client_id = "client_auction_api"
+        self.client_secret = "1xB9Ik1xsEu2nbwVa1BR"
+        self.username = "Test_IntradayAPI_ADREM"
+        self.password = "nR(B8fDY{485Nq4mu"
+        self.scope = "auction_api"
+        self.grant_type = "password"
+
+        # Generate Basic Auth header with auction client credentials
+        credentials = f"{self.client_id}:{self.client_secret}"
+        encoded = base64.b64encode(credentials.encode()).decode()
+        self.basic_auth = f"Basic {encoded}"
+
         self.token_info: Optional[TokenInfo] = None
         self.logger = logging.getLogger(__name__)
-    
+
     def get_token_sync(self) -> TokenInfo:
         """
-        Synchronously obtain an access token using client credentials grant
+        Synchronously obtain an access token using password grant
         """
         if self.token_info and not self.token_info.is_expired:
             return self.token_info
-        
+
         token_data = {
-            "grant_type": "client_credentials",
-            "client_id": self.client_id,
-            "client_secret": self.client_secret,
-            "scope": "api"  # Adjust scope as needed
+            "grant_type": self.grant_type,
+            "username": self.username,
+            "password": self.password,
+            "scope": self.scope
         }
-        
+
         headers = {
             "Content-Type": "application/x-www-form-urlencoded",
-            "Accept": "application/json"
+            "Accept": "application/json",
+            "Authorization": self.basic_auth
         }
-        
+
         try:
             self.logger.info(f"Requesting token from {config.sso_token_url}")
             response = requests.post(
@@ -73,12 +87,12 @@ class BRMAuthenticator:
                 timeout=30
             )
             response.raise_for_status()
-            
+
             token_response = response.json()
-            
+
             # Calculate expiration time
             expires_at = datetime.now() + timedelta(seconds=token_response["expires_in"])
-            
+
             self.token_info = TokenInfo(
                 access_token=token_response["access_token"],
                 token_type=token_response.get("token_type", "Bearer"),
@@ -86,36 +100,37 @@ class BRMAuthenticator:
                 expires_at=expires_at,
                 scope=token_response.get("scope")
             )
-            
+
             self.logger.info(f"Token acquired successfully, expires at {expires_at}")
             return self.token_info
-            
+
         except requests.RequestException as e:
             self.logger.error(f"Failed to obtain token: {e}")
             raise
         except KeyError as e:
             self.logger.error(f"Invalid token response format: {e}")
             raise
-    
+
     async def get_token_async(self) -> TokenInfo:
         """
-        Asynchronously obtain an access token using client credentials grant
+        Asynchronously obtain an access token using password grant
         """
         if self.token_info and not self.token_info.is_expired:
             return self.token_info
-        
+
         token_data = {
-            "grant_type": "client_credentials",
-            "client_id": self.client_id,
-            "client_secret": self.client_secret,
-            "scope": "api"
+            "grant_type": self.grant_type,
+            "username": self.username,
+            "password": self.password,
+            "scope": self.scope
         }
-        
+
         headers = {
             "Content-Type": "application/x-www-form-urlencoded",
-            "Accept": "application/json"
+            "Accept": "application/json",
+            "Authorization": self.basic_auth
         }
-        
+
         try:
             async with aiohttp.ClientSession() as session:
                 self.logger.info(f"Requesting token from {config.sso_token_url}")
@@ -127,10 +142,10 @@ class BRMAuthenticator:
                 ) as response:
                     response.raise_for_status()
                     token_response = await response.json()
-            
+
             # Calculate expiration time
             expires_at = datetime.now() + timedelta(seconds=token_response["expires_in"])
-            
+
             self.token_info = TokenInfo(
                 access_token=token_response["access_token"],
                 token_type=token_response.get("token_type", "Bearer"),
@@ -138,10 +153,10 @@ class BRMAuthenticator:
                 expires_at=expires_at,
                 scope=token_response.get("scope")
             )
-            
+
             self.logger.info(f"Token acquired successfully, expires at {expires_at}")
             return self.token_info
-            
+
         except aiohttp.ClientError as e:
             self.logger.error(f"Failed to obtain token: {e}")
             raise
@@ -172,22 +187,19 @@ class BRMAuthenticator:
         }
 
 
-# Global authenticator instance (will be initialized when credentials are provided)
+# Global authenticator instance
 authenticator: Optional[BRMAuthenticator] = None
 
 
-def initialize_auth(client_id: str, client_secret: str) -> BRMAuthenticator:
-    """Initialize the global authenticator with credentials"""
+def initialize_auth(client_id: str = None, client_secret: str = None) -> BRMAuthenticator:
+    """Initialize the global authenticator"""
     global authenticator
-    authenticator = BRMAuthenticator(client_id, client_secret)
+    authenticator = BRMAuthenticator()
     return authenticator
 
 
 def get_authenticator() -> BRMAuthenticator:
     """Get the global authenticator instance"""
     if authenticator is None:
-        if config.client_id and config.client_secret:
-            return initialize_auth(config.client_id, config.client_secret)
-        else:
-            raise ValueError("Authenticator not initialized. Call initialize_auth() first.")
+        return initialize_auth()
     return authenticator
