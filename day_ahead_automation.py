@@ -50,17 +50,9 @@ def fetch_forecast_data() -> pd.DataFrame:
     Returns:
         DataFrame with forecast data
     """
-    # Change to Portfolio directory (Forecast_functions uses relative paths like ./Astro/)
-    original_dir = os.getcwd()
-    portfolio_dir = Path(__file__).parent.parent / "Portfolio"
-
-    try:
-        os.chdir(portfolio_dir)
-        from Forecast_functions import fetching_Astro_data_15min
-        logger.info("Fetching Solcast forecast data...")
-        return fetching_Astro_data_15min()
-    finally:
-        os.chdir(original_dir)
+    from Forecast_functions import fetching_Astro_data_15min
+    logger.info("Fetching Solcast forecast data...")
+    return fetching_Astro_data_15min()
 
 
 def run_prediction_model(interval_from: int = 0, interval_to: int = 24, limitation: float = 0) -> pd.DataFrame:
@@ -75,17 +67,9 @@ def run_prediction_model(interval_from: int = 0, interval_to: int = 24, limitati
     Returns:
         DataFrame with predictions
     """
-    # Change to Portfolio directory (Forecast_functions uses relative paths like ./Astro/)
-    original_dir = os.getcwd()
-    portfolio_dir = Path(__file__).parent.parent / "Portfolio"
-
-    try:
-        os.chdir(portfolio_dir)
-        from Forecast_functions import predicting_exporting_Astro_15min
-        logger.info("Running XGBoost prediction model...")
-        return predicting_exporting_Astro_15min(interval_from, interval_to, limitation)
-    finally:
-        os.chdir(original_dir)
+    from Forecast_functions import predicting_exporting_Astro_15min
+    logger.info("Running XGBoost prediction model...")
+    return predicting_exporting_Astro_15min(interval_from, interval_to, limitation)
 
 
 def get_forecast_for_date(delivery_date: str) -> Optional[Dict[int, float]]:
@@ -99,7 +83,7 @@ def get_forecast_for_date(delivery_date: str) -> Optional[Dict[int, float]]:
         Dict mapping interval (1-96) to predicted MWh (all in CET), or None if no data
     """
     # Read the prediction results file
-    results_path = Path(__file__).parent.parent / "Portfolio" / "Astro" / "Results_Production_Astro_xgb_15min.xlsx"
+    results_path = Path(__file__).parent / "Astro" / "Results_Production_Astro_xgb_15min.xlsx"
 
     if not results_path.exists():
         logger.error(f"Prediction results file not found: {results_path}")
