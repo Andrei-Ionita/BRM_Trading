@@ -62,7 +62,8 @@ def add_log(message: str, level: str = "INFO"):
 
 def get_forecast_data(delivery_date: str) -> dict:
     """Load forecast data for a given date."""
-    results_path = Path(__file__).parent.parent.parent / "Portfolio" / "Astro" / "Results_Production_Astro_xgb_15min.xlsx"
+    # Look in BRM_Trading_Bot/Astro/ (same directory as the app)
+    results_path = Path(__file__).parent.parent / "Astro" / "Results_Production_Astro_xgb_15min.xlsx"
 
     if not results_path.exists():
         return {"intervals": [], "values": [], "total_mwh": 0, "error": "Forecast file not found"}
@@ -422,42 +423,25 @@ def api_run_forecast():
     def run_forecast():
         import traceback
         try:
-            # Change to Portfolio directory
-            original_dir = os.getcwd()
-            portfolio_dir = Path(__file__).parent.parent.parent / "Portfolio"
+            # Import from BRM_Trading_Bot directory (parent of dashboard)
+            bot_dir = Path(__file__).parent.parent
+            if str(bot_dir) not in sys.path:
+                sys.path.insert(0, str(bot_dir))
 
-            add_log(f"Current dir: {original_dir}", "DEBUG")
-            add_log(f"Portfolio dir: {portfolio_dir}", "DEBUG")
-            add_log(f"Portfolio exists: {portfolio_dir.exists()}", "DEBUG")
+            add_log(f"Bot dir: {bot_dir}", "DEBUG")
 
-            try:
-                os.chdir(portfolio_dir)
-                add_log(f"Changed to directory: {os.getcwd()}", "DEBUG")
+            add_log("Importing Forecast_functions...", "DEBUG")
+            from Forecast_functions import fetching_Astro_data_15min, predicting_exporting_Astro_15min
 
-                # Check if Astro directory exists
-                astro_dir = Path("./Astro")
-                add_log(f"Astro dir exists: {astro_dir.exists()}", "DEBUG")
+            add_log("Fetching Solcast data...", "INFO")
+            fetching_Astro_data_15min()
+            add_log("Solcast data fetched successfully", "SUCCESS")
 
-                # Import and run forecast functions
-                root_dir = Path(__file__).parent.parent.parent
-                if str(root_dir) not in sys.path:
-                    sys.path.insert(0, str(root_dir))
+            add_log("Running XGBoost prediction model...", "INFO")
+            predicting_exporting_Astro_15min(0, 24, 0)
+            add_log("Prediction model completed successfully", "SUCCESS")
 
-                add_log("Importing Forecast_functions...", "DEBUG")
-                from Forecast_functions import fetching_Astro_data_15min, predicting_exporting_Astro_15min
-
-                add_log("Fetching Solcast data...", "INFO")
-                fetching_Astro_data_15min()
-                add_log("Solcast data fetched successfully", "SUCCESS")
-
-                add_log("Running XGBoost prediction model...", "INFO")
-                predicting_exporting_Astro_15min(0, 24, 0)
-                add_log("Prediction model completed successfully", "SUCCESS")
-
-                dashboard_state["forecast_status"] = "completed"
-
-            finally:
-                os.chdir(original_dir)
+            dashboard_state["forecast_status"] = "completed"
 
         except Exception as e:
             dashboard_state["forecast_status"] = "error"
