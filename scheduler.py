@@ -27,7 +27,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Scheduling configuration
-DA_RUN_HOUR = 12  # Run DA at 12:00 CET (before 13:00 gate closure)
+DA_RUN_HOUR = 11  # Run DA at 11:00 CET (before 12:00 gate closure)
 DA_RUN_MINUTE = 0
 IDM_INTERVAL_MINUTES = 15  # Run IDM every 15 minutes
 
