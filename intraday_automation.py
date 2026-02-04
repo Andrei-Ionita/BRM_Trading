@@ -82,17 +82,9 @@ def fetch_fresh_forecast() -> pd.DataFrame:
     Returns:
         DataFrame with forecast data
     """
-    # Change to Portfolio directory (Forecast_functions uses relative paths like ./Astro/)
-    original_dir = os.getcwd()
-    portfolio_dir = Path(__file__).parent.parent / "Portfolio"
-
-    try:
-        os.chdir(portfolio_dir)
-        from Forecast_functions import fetching_Astro_data_15min
-        logger.info("Fetching fresh Solcast forecast data...")
-        return fetching_Astro_data_15min()
-    finally:
-        os.chdir(original_dir)
+    from Forecast_functions import fetching_Astro_data_15min
+    logger.info("Fetching fresh Solcast forecast data...")
+    return fetching_Astro_data_15min()
 
 
 def run_prediction() -> pd.DataFrame:
@@ -102,17 +94,9 @@ def run_prediction() -> pd.DataFrame:
     Returns:
         DataFrame with predictions
     """
-    # Change to Portfolio directory (Forecast_functions uses relative paths like ./Astro/)
-    original_dir = os.getcwd()
-    portfolio_dir = Path(__file__).parent.parent / "Portfolio"
-
-    try:
-        os.chdir(portfolio_dir)
-        from Forecast_functions import predicting_exporting_Astro_15min
-        logger.info("Running XGBoost prediction model...")
-        return predicting_exporting_Astro_15min(0, 24, 0)
-    finally:
-        os.chdir(original_dir)
+    from Forecast_functions import predicting_exporting_Astro_15min
+    logger.info("Running XGBoost prediction model...")
+    return predicting_exporting_Astro_15min(0, 24, 0)
 
 
 def get_forecast_for_date(delivery_date: str) -> Optional[Dict[int, float]]:
@@ -125,7 +109,7 @@ def get_forecast_for_date(delivery_date: str) -> Optional[Dict[int, float]]:
     Returns:
         Dict mapping interval (1-96) to predicted MWh (all in CET)
     """
-    results_path = Path(__file__).parent.parent / "Portfolio" / "Astro" / "Results_Production_Astro_xgb_15min.xlsx"
+    results_path = Path(__file__).parent / "Astro" / "Results_Production_Astro_xgb_15min.xlsx"
 
     if not results_path.exists():
         logger.error(f"Prediction results file not found: {results_path}")
