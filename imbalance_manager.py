@@ -14,8 +14,8 @@ from zoneinfo import ZoneInfo
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Constants
-POSITION_FILE_DIR = Path(__file__).parent.parent / "Portfolio" / "Astro"
+# Constants - use local Astro directory
+POSITION_FILE_DIR = Path(__file__).parent / "Astro"
 POSITION_FILE_NAME = "da_position.json"
 POSITION_FILE = POSITION_FILE_DIR / POSITION_FILE_NAME
 
