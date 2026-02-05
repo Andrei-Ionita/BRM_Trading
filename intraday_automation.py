@@ -591,6 +591,34 @@ async def run_intraday_automation(
             if not single_run:
                 return False
 
+    # Helper function to connect/reconnect WebSocket
+    async def ensure_websocket_connected():
+        nonlocal ws_client
+        if ws_client and ws_client.stomp_connected:
+            return True
+
+        logger.info("WebSocket disconnected - reconnecting...")
+        if ws_client:
+            try:
+                await ws_client.disconnect()
+            except:
+                pass
+
+        ws_client = IntradayWebSocketClient(username)
+        executor.ws_client = ws_client
+
+        if await ws_client.connect():
+            await ws_client.subscribe_to_contracts(market_data.handle_contracts)
+            await ws_client.subscribe_to_local_view(area_id, market_data.handle_local_view)
+            await ws_client.subscribe_to_order_execution_reports(executor.handle_execution_report)
+            await ws_client.subscribe_to_private_trades(executor.handle_private_trade)
+            logger.info("WebSocket reconnected and subscribed to feeds")
+            await asyncio.sleep(2)
+            return True
+        else:
+            logger.error("Failed to reconnect WebSocket")
+            return False
+
     # Main loop
     iteration = 0
     try:
@@ -604,6 +632,12 @@ async def run_intraday_automation(
             if current_interval >= 96:
                 logger.info("All intervals complete - exiting")
                 break
+
+            # Ensure WebSocket is connected before trading (skip for dry run)
+            if not dry_run:
+                if not await ensure_websocket_connected():
+                    logger.error("Cannot trade without WebSocket connection - skipping iteration")
+                    continue
 
             # Run iteration
             try:
