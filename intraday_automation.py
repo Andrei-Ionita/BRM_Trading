@@ -483,7 +483,8 @@ async def run_intraday_iteration(
             price_eur = price_info[0] * price_adjustment
         else:
             # Use default price if no order book data
-            price_eur = 100.0 if side == "BUY" else 0.0
+            # SELL at low but reasonable price, BUY at high price to ensure execution
+            price_eur = 200.0 if side == "BUY" else 50.0
             logger.warning(f"No order book data for {contract_id} - using default price {price_eur}")
 
         price_cents = int(price_eur * 100)
@@ -513,6 +514,15 @@ async def run_intraday_iteration(
             )
             if request_id:
                 orders_placed += 1
+                # Update position immediately when order is sent (optimistic update)
+                # This ensures dashboard shows activity even if execution reports are delayed
+                update_position_after_trade(
+                    delivery_date,
+                    interval,
+                    side,
+                    rounded_imbalance
+                )
+                logger.info(f"Position updated for interval {interval}: {side} {rounded_imbalance:.1f} MW")
 
     return orders_placed
 
