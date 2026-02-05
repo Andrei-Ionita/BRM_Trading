@@ -50,6 +50,55 @@ from imbalance_manager import (
     DEFAULT_IMBALANCE_THRESHOLD_MW
 )
 
+# IDM trading window: only trade the next N intervals (2 hours = 8 intervals)
+# This prevents excessive trading on distant intervals with less accurate forecasts
+IDM_TRADING_WINDOW_INTERVALS = 8
+
+
+def calculate_imbalances_windowed(
+    position: Dict,
+    new_forecast: Dict[int, float],
+    from_interval: int,
+    to_interval: int,
+    threshold_mw: float = DEFAULT_IMBALANCE_THRESHOLD_MW
+) -> List[Tuple[int, float, str]]:
+    """
+    Calculate imbalances between contracted and new forecast for a specific window.
+
+    Args:
+        position: Position data with contracted values (MW)
+        new_forecast: Dict mapping CET interval to new forecast (MW)
+        from_interval: Start interval (inclusive)
+        to_interval: End interval (inclusive)
+        threshold_mw: Minimum imbalance to trade (MW)
+
+    Returns:
+        List of (interval, imbalance_mw, side) tuples where trading is needed
+    """
+    imbalances = []
+
+    for interval in range(from_interval, to_interval + 1):
+        interval_key = str(interval)
+
+        if interval_key not in position["intervals"]:
+            continue
+
+        contracted = position["intervals"][interval_key]["contracted"]
+        forecast = new_forecast.get(interval, 0.0)
+
+        # imbalance = contracted - forecast
+        # positive: we committed more than we'll produce -> BUY
+        # negative: we'll produce more than committed -> SELL
+        imbalance = contracted - forecast
+
+        if abs(imbalance) >= threshold_mw:
+            side = "BUY" if imbalance > 0 else "SELL"
+            imbalances.append((interval, abs(imbalance), side))
+            logger.debug(f"Interval {interval}: contracted={contracted:.1f}, "
+                        f"forecast={forecast:.1f}, imbalance={imbalance:.1f} -> {side}")
+
+    return imbalances
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -430,15 +479,19 @@ async def run_intraday_iteration(
     total_contracted = sum(v.get("contracted", 0) for v in position.get("intervals", {}).values())
     logger.info(f"Position loaded: {len(position.get('intervals', {}))} intervals, total contracted: {total_contracted:.2f} MW")
 
-    # Get current interval and remaining intervals
+    # Get current interval and calculate trading window
     current_interval = get_current_cet_interval()
-    remaining = get_remaining_intervals(current_interval)
 
-    if not remaining:
+    # Only trade the next N intervals (default: 8 = 2 hours)
+    # This prevents excessive trading on distant intervals with less accurate forecasts
+    first_tradeable = current_interval + 1
+    last_tradeable = min(current_interval + IDM_TRADING_WINDOW_INTERVALS, 96)
+
+    if first_tradeable > 96:
         logger.info("No remaining intervals to trade")
         return 0
 
-    logger.info(f"Current interval: {current_interval}, remaining: {len(remaining)} intervals")
+    logger.info(f"Current interval: {current_interval}, trading window: {first_tradeable}-{last_tradeable} ({last_tradeable - first_tradeable + 1} intervals)")
 
     # Get updated forecast
     forecast_mw = get_updated_forecast_mw(delivery_date)
@@ -449,9 +502,9 @@ async def run_intraday_iteration(
     total_forecast = sum(forecast_mw.values())
     logger.info(f"Forecast total: {total_forecast:.2f} MW, Contracted total: {total_contracted:.2f} MW")
 
-    # Calculate imbalances
-    logger.info(f"Calculating imbalances (threshold: {threshold_mw} MW)...")
-    imbalances = calculate_imbalances(position, forecast_mw, current_interval + 1, threshold_mw)
+    # Calculate imbalances only for the trading window
+    logger.info(f"Calculating imbalances for intervals {first_tradeable}-{last_tradeable} (threshold: {threshold_mw} MW)...")
+    imbalances = calculate_imbalances_windowed(position, forecast_mw, first_tradeable, last_tradeable, threshold_mw)
 
     if not imbalances:
         logger.info("No significant imbalances detected (forecast matches contracted)")
