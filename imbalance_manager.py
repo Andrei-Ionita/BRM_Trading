@@ -281,6 +281,7 @@ def load_position(delivery_date: str) -> Optional[Dict]:
     Load position data for a specific delivery date.
 
     Tries database first, then falls back to file storage.
+    If file has data but database doesn't, syncs file to database.
 
     Args:
         delivery_date: Delivery date in YYYY-MM-DD format
@@ -288,13 +289,18 @@ def load_position(delivery_date: str) -> Optional[Dict]:
     Returns:
         Position data dict or None if not found or wrong date
     """
+    db_available = False
+    db_has_position = False
+
     # Try database first
     try:
-        from database import load_position_from_db, is_database_available
-        if is_database_available():
+        from database import load_position_from_db, save_position_to_db, is_database_available
+        db_available = is_database_available()
+        if db_available:
             position = load_position_from_db(delivery_date)
             if position:
                 logger.info(f"Position loaded from database for {delivery_date}")
+                db_has_position = True
                 return position
     except ImportError:
         pass
@@ -311,6 +317,15 @@ def load_position(delivery_date: str) -> Optional[Dict]:
         if position.get("delivery_date") != delivery_date:
             logger.warning(f"Position file is for {position.get('delivery_date')}, not {delivery_date}")
             return None
+
+        # Sync file to database if database is available but doesn't have this position
+        if db_available and not db_has_position:
+            try:
+                from database import save_position_to_db
+                if save_position_to_db(delivery_date, position):
+                    logger.info(f"Position synced from file to database for {delivery_date}")
+            except Exception as e:
+                logger.warning(f"Failed to sync position to database: {e}")
 
         return position
     except Exception as e:
