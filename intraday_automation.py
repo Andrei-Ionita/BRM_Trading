@@ -149,15 +149,20 @@ def get_updated_forecast_mw(delivery_date: str) -> Optional[Dict[int, float]]:
     """
     # Fetch and predict
     try:
+        logger.info("Fetching fresh Solcast data...")
         fetch_fresh_forecast()
+        logger.info("Running XGBoost prediction...")
         run_prediction()
+        logger.info("Forecast updated successfully")
     except Exception as e:
         logger.warning(f"Error refreshing forecast: {e}")
-        # Continue with existing data
+        logger.info("Continuing with existing forecast data")
 
     # Get forecast (already in CET)
+    logger.info(f"Loading forecast for {delivery_date}...")
     forecast = get_forecast_for_date(delivery_date)
     if not forecast:
+        logger.error(f"No forecast data found for {delivery_date}")
         return None
 
     # Convert MWh to MW
@@ -165,6 +170,7 @@ def get_updated_forecast_mw(delivery_date: str) -> Optional[Dict[int, float]]:
     for interval, mwh in forecast.items():
         forecast_mw[interval] = mwh_to_mw(mwh)
 
+    logger.info(f"Loaded forecast: {len(forecast_mw)} intervals, total {sum(forecast_mw.values()):.2f} MW")
     return forecast_mw
 
 
@@ -405,10 +411,14 @@ async def run_intraday_iteration(
     orders_placed = 0
 
     # Get current position
+    logger.info(f"Loading position for {delivery_date}...")
     position = load_position(delivery_date)
     if not position:
         logger.error(f"No position file for {delivery_date}")
         return 0
+
+    total_contracted = sum(v.get("contracted", 0) for v in position.get("intervals", {}).values())
+    logger.info(f"Position loaded: {len(position.get('intervals', {}))} intervals, total contracted: {total_contracted:.2f} MW")
 
     # Get current interval and remaining intervals
     current_interval = get_current_cet_interval()
@@ -426,11 +436,15 @@ async def run_intraday_iteration(
         logger.warning("Could not get updated forecast - using previous contracted values")
         return 0
 
+    total_forecast = sum(forecast_mw.values())
+    logger.info(f"Forecast total: {total_forecast:.2f} MW, Contracted total: {total_contracted:.2f} MW")
+
     # Calculate imbalances
+    logger.info(f"Calculating imbalances (threshold: {threshold_mw} MW)...")
     imbalances = calculate_imbalances(position, forecast_mw, current_interval + 1, threshold_mw)
 
     if not imbalances:
-        logger.info("No significant imbalances detected")
+        logger.info("No significant imbalances detected (forecast matches contracted)")
         return 0
 
     logger.info(f"Found {len(imbalances)} intervals with imbalances")
