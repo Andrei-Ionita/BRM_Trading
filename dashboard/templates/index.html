@@ -943,6 +943,7 @@
                                 <tr>
                                     <th>Interval</th>
                                     <th>Time</th>
+                                    <th>Forecast</th>
                                     <th>DA Sold</th>
                                     <th>IDM Sell</th>
                                     <th>IDM Buy</th>
@@ -2047,13 +2048,16 @@
 
                 // Calculate net position: DA + IDM Sell - IDM Buy
                 const netPosition = interval.da_sold + interval.idm_sold - interval.idm_bought;
+                const forecast = interval.forecast_mw || 0;
 
-                // Highlight rows with non-zero position
+                // Highlight rows with non-zero position or forecast
                 const hasPosition = netPosition > 0;
+                const hasForecast = forecast > 0;
 
                 row.innerHTML = `
                     <td><strong>${interval.interval}</strong></td>
                     <td>${interval.time}</td>
+                    <td style="color: ${hasForecast ? 'var(--accent-yellow)' : 'inherit'}">${forecast.toFixed(2)}</td>
                     <td>${interval.da_sold.toFixed(2)}</td>
                     <td>${interval.idm_sold.toFixed(2)}</td>
                     <td>${interval.idm_bought.toFixed(2)}</td>
