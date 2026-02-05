@@ -391,8 +391,7 @@ async def run_intraday_iteration(
     portfolio_id: str,
     area_id: int,
     threshold_mw: float,
-    dry_run: bool = False,
-    sell_only_mode: bool = False
+    dry_run: bool = False
 ) -> int:
     """
     Run one iteration of intraday monitoring.
@@ -405,7 +404,6 @@ async def run_intraday_iteration(
         area_id: Delivery area ID
         threshold_mw: Minimum imbalance to trade
         dry_run: If True, don't place orders
-        sell_only_mode: If True, only SELL (no BUY orders) - used when DA didn't run
 
     Returns:
         Number of orders placed
@@ -428,14 +426,6 @@ async def run_intraday_iteration(
             logger.error(f"Failed to create empty position for {delivery_date}")
             return 0
         logger.info(f"Empty position created - will sell all forecast production on IDM")
-        sell_only_mode = True  # Auto-enable sell-only mode when DA didn't run
-
-    # Check if this is IDM-only mode (DA didn't run)
-    # Detect by checking if all da_sold values are 0
-    total_da_sold = sum(v.get("da_sold", 0) for v in position.get("intervals", {}).values())
-    if total_da_sold == 0:
-        sell_only_mode = True
-        logger.info("IDM-only mode detected (no DA sold) - will only SELL, not BUY")
 
     total_contracted = sum(v.get("contracted", 0) for v in position.get("intervals", {}).values())
     logger.info(f"Position loaded: {len(position.get('intervals', {}))} intervals, total contracted: {total_contracted:.2f} MW")
@@ -461,31 +451,7 @@ async def run_intraday_iteration(
 
     # Calculate imbalances
     logger.info(f"Calculating imbalances (threshold: {threshold_mw} MW)...")
-
-    if sell_only_mode:
-        # In sell-only mode, calculate imbalances differently:
-        # Only sell NEW production that hasn't been sold yet
-        # imbalance = idm_sold - forecast (negative = new production to sell)
-        imbalances = []
-        for interval in range(current_interval + 1, 97):
-            interval_key = str(interval)
-            if interval_key not in position["intervals"]:
-                continue
-
-            interval_data = position["intervals"][interval_key]
-            idm_sold = interval_data.get("idm_sold", 0)
-            forecast = forecast_mw.get(interval, 0.0)
-
-            # Only sell if forecast > what we've already sold
-            if forecast > idm_sold + threshold_mw:
-                new_to_sell = forecast - idm_sold
-                imbalances.append((interval, new_to_sell, "SELL"))
-                logger.debug(f"Interval {interval}: idm_sold={idm_sold:.1f}, forecast={forecast:.1f}, new_to_sell={new_to_sell:.1f}")
-
-        logger.info(f"Sell-only mode: {len(imbalances)} intervals with new production to sell")
-    else:
-        # Normal mode: balance contracted vs forecast
-        imbalances = calculate_imbalances(position, forecast_mw, current_interval + 1, threshold_mw)
+    imbalances = calculate_imbalances(position, forecast_mw, current_interval + 1, threshold_mw)
 
     if not imbalances:
         logger.info("No significant imbalances detected (forecast matches contracted)")
@@ -495,12 +461,6 @@ async def run_intraday_iteration(
 
     # Process each imbalance
     for interval, imbalance_mw, side in imbalances:
-        # In sell-only mode (IDM fallback), skip BUY orders
-        # This prevents buying back when forecast drops after we've already sold
-        if sell_only_mode and side == "BUY":
-            logger.info(f"Interval {interval}: Skipping BUY order (sell-only mode) - would have bought {imbalance_mw:.1f} MW")
-            continue
-
         # Check if market is still open
         if not is_market_open_for_interval(delivery_date, interval):
             logger.warning(f"Market closed for interval {interval} - skipping")
