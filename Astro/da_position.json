@@ -1,0 +1,582 @@
+{
+  "delivery_date": "2026-02-05",
+  "intervals": {
+    "1": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "2": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "3": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "4": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "5": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "6": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "7": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "8": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "9": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "10": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "11": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "12": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "13": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "14": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "15": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "16": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "17": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "18": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "19": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "20": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "21": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "22": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "23": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "24": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "25": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "26": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "27": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "28": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "29": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "30": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "31": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "32": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "33": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "34": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "35": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "36": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "37": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "38": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "39": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "40": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "41": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "42": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "43": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "44": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "45": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "46": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "47": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "48": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "49": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "50": {
+      "da_sold": 2.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 2.0
+    },
+    "51": {
+      "da_sold": 2.1,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 2.1
+    },
+    "52": {
+      "da_sold": 1.4,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 1.4
+    },
+    "53": {
+      "da_sold": 1.1,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 1.1
+    },
+    "54": {
+      "da_sold": 0.8,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.8
+    },
+    "55": {
+      "da_sold": 1.6,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 1.6
+    },
+    "56": {
+      "da_sold": 1.8,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 1.8
+    },
+    "57": {
+      "da_sold": 1.6,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 1.6
+    },
+    "58": {
+      "da_sold": 1.6,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 1.6
+    },
+    "59": {
+      "da_sold": 1.4,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 1.4
+    },
+    "60": {
+      "da_sold": 1.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 1.0
+    },
+    "61": {
+      "da_sold": 1.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 1.0
+    },
+    "62": {
+      "da_sold": 0.9,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.9
+    },
+    "63": {
+      "da_sold": 0.7,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.7
+    },
+    "64": {
+      "da_sold": 0.6,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.6
+    },
+    "65": {
+      "da_sold": 0.4,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.4
+    },
+    "66": {
+      "da_sold": 0.2,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.2
+    },
+    "67": {
+      "da_sold": 0.2,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.2
+    },
+    "68": {
+      "da_sold": 0.1,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.1
+    },
+    "69": {
+      "da_sold": 0.1,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.1
+    },
+    "70": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "71": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "72": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "73": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "74": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "75": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "76": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "77": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "78": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "79": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "80": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "81": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "82": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "83": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "84": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "85": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "86": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "87": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "88": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "89": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "90": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "91": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "92": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "93": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "94": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "95": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "96": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    }
+  },
+  "last_updated": "2026-02-05T12:09:44.067382"
+}

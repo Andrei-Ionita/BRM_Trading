@@ -461,6 +461,70 @@ def api_forecast_status():
     return jsonify({"status": dashboard_state.get("forecast_status", "idle")})
 
 
+@app.route("/api/position/create", methods=["POST"])
+def api_create_position():
+    """Create position from forecast for a given date."""
+    data = request.json or {}
+    date = data.get("date", get_today_date())
+
+    add_log(f"Creating position for {date} from forecast...", "INFO")
+
+    try:
+        import pandas as pd
+        from datetime import datetime as dt
+
+        # Get forecast file
+        results_path = Path(__file__).parent.parent / "Astro" / "Results_Production_Astro_xgb_15min.xlsx"
+
+        if not results_path.exists():
+            add_log(f"Forecast file not found: {results_path}", "ERROR")
+            return jsonify({"error": "Forecast file not found. Run forecast first."}), 400
+
+        df = pd.read_excel(results_path)
+        df["Data"] = pd.to_datetime(df["Data"])
+
+        target_date = dt.strptime(date, "%Y-%m-%d")
+        df_date = df[df["Data"].dt.date == target_date.date()]
+
+        if df_date.empty:
+            add_log(f"No forecast data for {date}", "ERROR")
+            return jsonify({"error": f"No forecast data for {date}"}), 400
+
+        # Create da_sold_dict from forecast (convert MWh to MW)
+        da_sold_dict = {}
+        for _, row in df_date.iterrows():
+            interval = int(row["Interval"])
+            mwh = float(row["Prediction"])
+            mw = mwh * 4  # MWh to MW for 15-min interval
+            da_sold_dict[interval] = round(mw, 1)
+
+        add_log(f"Found {len(da_sold_dict)} forecast intervals", "INFO")
+
+        # Import and create position
+        from imbalance_manager import init_position_file
+        position = init_position_file(date, da_sold_dict)
+
+        if position:
+            total = sum(v.get("contracted", 0) for v in position.get("intervals", {}).values())
+            add_log(f"Position created! Total: {total:.2f} MW", "SUCCESS")
+            return jsonify({
+                "status": "created",
+                "date": date,
+                "total_contracted_mw": round(total, 2),
+                "intervals_with_production": len([v for v in position.get("intervals", {}).values() if v.get("contracted", 0) > 0])
+            })
+        else:
+            add_log("Failed to create position", "ERROR")
+            return jsonify({"error": "Failed to create position"}), 500
+
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        add_log(f"Error creating position: {e}", "ERROR")
+        add_log(f"Traceback: {error_trace}", "ERROR")
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/alerts")
 def api_alerts():
     """Get recent alerts."""
