@@ -296,70 +296,70 @@
       "contracted": 0.0
     },
     "50": {
+      "da_sold": 0.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.0
+    },
+    "51": {
       "da_sold": 2.0,
       "idm_sold": 0.0,
       "idm_bought": 0.0,
       "contracted": 2.0
     },
-    "51": {
-      "da_sold": 2.1,
+    "52": {
+      "da_sold": 2.0,
       "idm_sold": 0.0,
       "idm_bought": 0.0,
-      "contracted": 2.1
+      "contracted": 2.0
     },
-    "52": {
+    "53": {
+      "da_sold": 2.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 2.0
+    },
+    "54": {
+      "da_sold": 2.0,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 2.0
+    },
+    "55": {
       "da_sold": 1.4,
       "idm_sold": 0.0,
       "idm_bought": 0.0,
       "contracted": 1.4
     },
-    "53": {
-      "da_sold": 1.1,
-      "idm_sold": 0.0,
-      "idm_bought": 0.0,
-      "contracted": 1.1
-    },
-    "54": {
-      "da_sold": 0.8,
-      "idm_sold": 0.0,
-      "idm_bought": 0.0,
-      "contracted": 0.8
-    },
-    "55": {
-      "da_sold": 1.6,
-      "idm_sold": 0.0,
-      "idm_bought": 0.0,
-      "contracted": 1.6
-    },
     "56": {
+      "da_sold": 1.2,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 1.2
+    },
+    "57": {
       "da_sold": 1.8,
       "idm_sold": 0.0,
       "idm_bought": 0.0,
       "contracted": 1.8
     },
-    "57": {
-      "da_sold": 1.6,
-      "idm_sold": 0.0,
-      "idm_bought": 0.0,
-      "contracted": 1.6
-    },
     "58": {
-      "da_sold": 1.6,
+      "da_sold": 1.8,
       "idm_sold": 0.0,
       "idm_bought": 0.0,
-      "contracted": 1.6
+      "contracted": 1.8
     },
     "59": {
-      "da_sold": 1.4,
+      "da_sold": 1.5,
       "idm_sold": 0.0,
       "idm_bought": 0.0,
-      "contracted": 1.4
+      "contracted": 1.5
     },
     "60": {
-      "da_sold": 1.0,
+      "da_sold": 1.2,
       "idm_sold": 0.0,
       "idm_bought": 0.0,
-      "contracted": 1.0
+      "contracted": 1.2
     },
     "61": {
       "da_sold": 1.0,
@@ -368,28 +368,28 @@
       "contracted": 1.0
     },
     "62": {
-      "da_sold": 0.9,
-      "idm_sold": 0.0,
-      "idm_bought": 0.0,
-      "contracted": 0.9
-    },
-    "63": {
       "da_sold": 0.7,
       "idm_sold": 0.0,
       "idm_bought": 0.0,
       "contracted": 0.7
     },
-    "64": {
+    "63": {
       "da_sold": 0.6,
       "idm_sold": 0.0,
       "idm_bought": 0.0,
       "contracted": 0.6
     },
-    "65": {
-      "da_sold": 0.4,
+    "64": {
+      "da_sold": 0.5,
       "idm_sold": 0.0,
       "idm_bought": 0.0,
-      "contracted": 0.4
+      "contracted": 0.5
+    },
+    "65": {
+      "da_sold": 0.3,
+      "idm_sold": 0.0,
+      "idm_bought": 0.0,
+      "contracted": 0.3
     },
     "66": {
       "da_sold": 0.2,
@@ -578,5 +578,5 @@
       "contracted": 0.0
     }
   },
-  "last_updated": "2026-02-05T12:09:44.067382"
+  "last_updated": "2026-02-05T12:30:17.435100"
 }

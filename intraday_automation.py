@@ -413,9 +413,19 @@ async def run_intraday_iteration(
     # Get current position
     logger.info(f"Loading position for {delivery_date}...")
     position = load_position(delivery_date)
+
     if not position:
-        logger.error(f"No position file for {delivery_date}")
-        return 0
+        # DA didn't run - create empty position so we sell everything on IDM
+        logger.warning(f"No position for {delivery_date} - DA may have failed. Creating empty position to sell all on IDM.")
+        from imbalance_manager import init_position_file
+        # Create position with all zeros - this will make contracted = 0
+        # So imbalance = contracted - forecast = 0 - forecast = -forecast (SELL everything)
+        empty_da_sold = {i: 0.0 for i in range(1, 97)}
+        position = init_position_file(delivery_date, empty_da_sold)
+        if not position:
+            logger.error(f"Failed to create empty position for {delivery_date}")
+            return 0
+        logger.info(f"Empty position created - will sell all forecast production on IDM")
 
     total_contracted = sum(v.get("contracted", 0) for v in position.get("intervals", {}).values())
     logger.info(f"Position loaded: {len(position.get('intervals', {}))} intervals, total contracted: {total_contracted:.2f} MW")
