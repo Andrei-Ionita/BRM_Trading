@@ -565,6 +565,7 @@ def api_da_activity(date):
 def api_idm_activity(date):
     """Get IDM trading activity for a date."""
     position = load_position(date)
+    forecast = get_forecast_data(date)
 
     if not position:
         return jsonify({"trades": [], "summary": {"total_sold": 0, "total_bought": 0}})
@@ -574,10 +575,17 @@ def api_idm_activity(date):
     total_sold = 0
     total_bought = 0
 
+    # Build forecast lookup
+    forecast_lookup = {}
+    if forecast.get("intervals"):
+        for idx, interval_num in enumerate(forecast["intervals"]):
+            forecast_lookup[interval_num] = round(forecast["values_mw"][idx], 2)
+
     for interval_num in range(1, 97):
         interval_data = intervals.get(str(interval_num), {})
         idm_sold = interval_data.get("idm_sold", 0)
         idm_bought = interval_data.get("idm_bought", 0)
+        forecast_mw = forecast_lookup.get(interval_num, 0)
 
         if idm_sold > 0:
             trades.append({
@@ -585,6 +593,7 @@ def api_idm_activity(date):
                 "time": f"{(interval_num-1)//4:02d}:{((interval_num-1)%4)*15:02d}",
                 "side": "SELL",
                 "quantity": round(idm_sold, 2),
+                "forecast_mw": forecast_mw,
                 "contracted": round(interval_data.get("contracted", 0), 2)
             })
             total_sold += idm_sold
@@ -595,6 +604,7 @@ def api_idm_activity(date):
                 "time": f"{(interval_num-1)//4:02d}:{((interval_num-1)%4)*15:02d}",
                 "side": "BUY",
                 "quantity": round(idm_bought, 2),
+                "forecast_mw": forecast_mw,
                 "contracted": round(interval_data.get("contracted", 0), 2)
             })
             total_bought += idm_bought

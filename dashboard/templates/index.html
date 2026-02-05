@@ -1216,13 +1216,14 @@
                                 <tr>
                                     <th>Interval</th>
                                     <th>Time</th>
+                                    <th>Forecast</th>
                                     <th>Side</th>
                                     <th>Quantity (MW)</th>
                                     <th>Net Position</th>
                                 </tr>
                             </thead>
                             <tbody id="idm-trades-body">
-                                <tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Loading...</td></tr>
+                                <tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">Loading...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1881,6 +1882,7 @@
                         <tr>
                             <td>${trade.interval}</td>
                             <td>${trade.time}</td>
+                            <td style="color: ${trade.forecast_mw > 0 ? 'var(--accent-yellow)' : 'inherit'}">${trade.forecast_mw || 0}</td>
                             <td style="color: ${trade.side === 'SELL' ? 'var(--accent-red)' : 'var(--accent-green)'}; font-weight: 600;">
                                 ${trade.side}
                             </td>
@@ -1889,7 +1891,7 @@
                         </tr>
                     `).join('');
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">No IDM trades yet</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">No IDM trades yet</td></tr>';
                 }
             } catch (e) {
                 console.error('IDM activity fetch error:', e);
