@@ -27,9 +27,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Scheduling configuration
-DA_RUN_HOUR = 11  # Run DA at 11:00 CET (before 12:00 gate closure)
+# DA gate closes at 13:00 EET (12:00 CET) for next day delivery
+# Run DA at 12:00 EET (11:00 CET) - 1 hour buffer before gate closure
+DA_RUN_HOUR = 11  # 11:00 CET = 12:00 EET (Romania time)
 DA_RUN_MINUTE = 0
-IDM_INTERVAL_MINUTES = 15  # Run IDM every 15 minutes
+IDM_INTERVAL_MINUTES = 15  # Run IDM every 15 minutes during delivery day
 
 # Global shutdown flag
 shutdown_requested = False
