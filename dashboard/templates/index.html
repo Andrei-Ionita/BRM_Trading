@@ -1102,6 +1102,49 @@
                     </div>
                 </div>
 
+                <!-- DA Activity Summary -->
+                <div class="metrics-grid" id="da-activity-summary" style="margin-bottom: 2rem;">
+                    <div class="metric-card">
+                        <div class="metric-value" id="da-total-sold" style="color: var(--accent-blue);">0</div>
+                        <div class="metric-label">DA Sold (MW)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="da-interval-count">0</div>
+                        <div class="metric-label">Intervals with Orders</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="da-delivery-date">--</div>
+                        <div class="metric-label">Delivery Date</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="da-last-updated">--</div>
+                        <div class="metric-label">Last Updated</div>
+                    </div>
+                </div>
+
+                <!-- DA Orders Table -->
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-header">
+                        <h3 class="card-title">DA Orders Placed</h3>
+                        <button class="btn-small" onclick="fetchDaActivity()">Refresh</button>
+                    </div>
+                    <div class="table-container" style="max-height: 300px; overflow-y: auto;">
+                        <table class="data-table" id="da-orders-table">
+                            <thead>
+                                <tr>
+                                    <th>Interval</th>
+                                    <th>Time</th>
+                                    <th>DA Sold (MW)</th>
+                                    <th>Contracted (MW)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="da-orders-body">
+                                <tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- DA Output Log -->
                 <div class="log-container">
                     <div class="log-header">
@@ -1137,6 +1180,50 @@
                             <button class="workflow-btn dry-run" id="intraday-page-dry">Dry Run</button>
                             <button class="workflow-btn run" id="intraday-page-run">Check Now</button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- IDM Activity Summary -->
+                <div class="metrics-grid" id="idm-activity-summary" style="margin-bottom: 2rem;">
+                    <div class="metric-card">
+                        <div class="metric-value" id="idm-total-sold" style="color: var(--accent-red);">0</div>
+                        <div class="metric-label">IDM Sold (MW)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="idm-total-bought" style="color: var(--accent-green);">0</div>
+                        <div class="metric-label">IDM Bought (MW)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="idm-net">0</div>
+                        <div class="metric-label">Net IDM (MW)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="idm-trade-count">0</div>
+                        <div class="metric-label">Total Trades</div>
+                    </div>
+                </div>
+
+                <!-- IDM Trades Table -->
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-header">
+                        <h3 class="card-title">IDM Trading Activity</h3>
+                        <button class="btn-small" onclick="fetchIdmActivity()">Refresh</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="idm-trades-table">
+                            <thead>
+                                <tr>
+                                    <th>Interval</th>
+                                    <th>Time</th>
+                                    <th>Side</th>
+                                    <th>Quantity (MW)</th>
+                                    <th>Net Position</th>
+                                </tr>
+                            </thead>
+                            <tbody id="idm-trades-body">
+                                <tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Loading...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -1663,6 +1750,41 @@
         });
 
         // ==================== DA Page ====================
+        async function fetchDaActivity() {
+            try {
+                const tomorrow = getTomorrow();
+                const res = await fetch(`/api/da/activity/${tomorrow}`);
+                const data = await res.json();
+
+                // Update summary
+                document.getElementById('da-total-sold').textContent = data.summary?.total_sold || 0;
+                document.getElementById('da-interval-count').textContent = data.summary?.interval_count || 0;
+                document.getElementById('da-delivery-date').textContent = data.delivery_date || '--';
+
+                if (data.last_updated) {
+                    const date = new Date(data.last_updated);
+                    document.getElementById('da-last-updated').textContent = date.toLocaleTimeString();
+                }
+
+                // Update table
+                const tbody = document.getElementById('da-orders-body');
+                if (data.orders && data.orders.length > 0) {
+                    tbody.innerHTML = data.orders.map(order => `
+                        <tr>
+                            <td>${order.interval}</td>
+                            <td>${order.time}</td>
+                            <td style="color: var(--accent-blue); font-weight: 600;">${order.quantity}</td>
+                            <td>${order.contracted}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">No DA orders for this date</td></tr>';
+                }
+            } catch (e) {
+                console.error('DA activity fetch error:', e);
+            }
+        }
+
         async function fetchDAOutput() {
             try {
                 const res = await fetch('/api/output/da');
@@ -1739,6 +1861,40 @@
         });
 
         // ==================== Intraday Page ====================
+        async function fetchIdmActivity() {
+            try {
+                const today = getToday();
+                const res = await fetch(`/api/idm/activity/${today}`);
+                const data = await res.json();
+
+                // Update summary
+                document.getElementById('idm-total-sold').textContent = data.summary?.total_sold || 0;
+                document.getElementById('idm-total-bought').textContent = data.summary?.total_bought || 0;
+                document.getElementById('idm-net').textContent = data.summary?.net || 0;
+                document.getElementById('idm-trade-count').textContent = data.summary?.trade_count || 0;
+
+                // Update table
+                const tbody = document.getElementById('idm-trades-body');
+                if (data.trades && data.trades.length > 0) {
+                    tbody.innerHTML = data.trades.map(trade => `
+                        <tr>
+                            <td>${trade.interval}</td>
+                            <td>${trade.time}</td>
+                            <td style="color: ${trade.side === 'SELL' ? 'var(--accent-red)' : 'var(--accent-green)'}; font-weight: 600;">
+                                ${trade.side}
+                            </td>
+                            <td>${trade.quantity}</td>
+                            <td>${trade.contracted}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">No IDM trades yet</td></tr>';
+                }
+            } catch (e) {
+                console.error('IDM activity fetch error:', e);
+            }
+        }
+
         async function fetchIntradayOutput() {
             try {
                 const res = await fetch('/api/output/intraday');
@@ -1942,8 +2098,10 @@
                     fetchForecastPage(currentDate);
                 } else if (page === 'day-ahead') {
                     fetchDAOutput();
+                    fetchDaActivity();
                 } else if (page === 'intraday') {
                     fetchIntradayOutput();
+                    fetchIdmActivity();
                 } else if (page === 'logs') {
                     fetchLogs();
                 } else if (page === 'position') {

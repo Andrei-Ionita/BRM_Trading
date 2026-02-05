@@ -525,6 +525,92 @@ def api_create_position():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/da/activity/<date>")
+def api_da_activity(date):
+    """Get DA trading activity for a date."""
+    position = load_position(date)
+
+    if not position:
+        return jsonify({"orders": [], "summary": {"total_sold": 0, "interval_count": 0}})
+
+    intervals = position.get("intervals", {})
+    orders = []
+    total_sold = 0
+
+    for interval_num in range(1, 97):
+        interval_data = intervals.get(str(interval_num), {})
+        da_sold = interval_data.get("da_sold", 0)
+
+        if da_sold > 0:
+            orders.append({
+                "interval": interval_num,
+                "time": f"{(interval_num-1)//4:02d}:{((interval_num-1)%4)*15:02d}",
+                "quantity": round(da_sold, 2),
+                "contracted": round(interval_data.get("contracted", 0), 2)
+            })
+            total_sold += da_sold
+
+    return jsonify({
+        "orders": orders,
+        "summary": {
+            "total_sold": round(total_sold, 2),
+            "interval_count": len(orders)
+        },
+        "delivery_date": date,
+        "last_updated": position.get("last_updated", "")
+    })
+
+
+@app.route("/api/idm/activity/<date>")
+def api_idm_activity(date):
+    """Get IDM trading activity for a date."""
+    position = load_position(date)
+
+    if not position:
+        return jsonify({"trades": [], "summary": {"total_sold": 0, "total_bought": 0}})
+
+    intervals = position.get("intervals", {})
+    trades = []
+    total_sold = 0
+    total_bought = 0
+
+    for interval_num in range(1, 97):
+        interval_data = intervals.get(str(interval_num), {})
+        idm_sold = interval_data.get("idm_sold", 0)
+        idm_bought = interval_data.get("idm_bought", 0)
+
+        if idm_sold > 0:
+            trades.append({
+                "interval": interval_num,
+                "time": f"{(interval_num-1)//4:02d}:{((interval_num-1)%4)*15:02d}",
+                "side": "SELL",
+                "quantity": round(idm_sold, 2),
+                "contracted": round(interval_data.get("contracted", 0), 2)
+            })
+            total_sold += idm_sold
+
+        if idm_bought > 0:
+            trades.append({
+                "interval": interval_num,
+                "time": f"{(interval_num-1)//4:02d}:{((interval_num-1)%4)*15:02d}",
+                "side": "BUY",
+                "quantity": round(idm_bought, 2),
+                "contracted": round(interval_data.get("contracted", 0), 2)
+            })
+            total_bought += idm_bought
+
+    return jsonify({
+        "trades": trades,
+        "summary": {
+            "total_sold": round(total_sold, 2),
+            "total_bought": round(total_bought, 2),
+            "net": round(total_sold - total_bought, 2),
+            "trade_count": len(trades)
+        },
+        "last_updated": position.get("last_updated", "")
+    })
+
+
 @app.route("/api/alerts")
 def api_alerts():
     """Get recent alerts."""
