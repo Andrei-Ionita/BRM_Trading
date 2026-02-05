@@ -231,6 +231,7 @@ def init_position_file(delivery_date: str, da_sold_dict: Dict[int, float]) -> Di
     Initialize position file with DA sold quantities.
 
     Creates the position file with DA sold values and zeros for IDM fields.
+    Uses database if available, falls back to file storage.
 
     Args:
         delivery_date: Delivery date in YYYY-MM-DD format
@@ -239,9 +240,6 @@ def init_position_file(delivery_date: str, da_sold_dict: Dict[int, float]) -> Di
     Returns:
         The created position data
     """
-    # Ensure directory exists
-    POSITION_FILE_DIR.mkdir(parents=True, exist_ok=True)
-
     # Build position structure
     position = {
         "delivery_date": delivery_date,
@@ -260,7 +258,17 @@ def init_position_file(delivery_date: str, da_sold_dict: Dict[int, float]) -> Di
             "contracted": round(da_sold, 1)  # Initially equals DA sold
         }
 
-    # Write to file
+    # Try to save to database first
+    try:
+        from database import save_position_to_db, is_database_available
+        if is_database_available():
+            if save_position_to_db(delivery_date, position):
+                logger.info(f"Position saved to database for {delivery_date}")
+    except ImportError:
+        pass
+
+    # Also save to file as backup
+    POSITION_FILE_DIR.mkdir(parents=True, exist_ok=True)
     with open(POSITION_FILE, 'w') as f:
         json.dump(position, f, indent=2)
 
@@ -272,12 +280,26 @@ def load_position(delivery_date: str) -> Optional[Dict]:
     """
     Load position data for a specific delivery date.
 
+    Tries database first, then falls back to file storage.
+
     Args:
         delivery_date: Delivery date in YYYY-MM-DD format
 
     Returns:
         Position data dict or None if not found or wrong date
     """
+    # Try database first
+    try:
+        from database import load_position_from_db, is_database_available
+        if is_database_available():
+            position = load_position_from_db(delivery_date)
+            if position:
+                logger.info(f"Position loaded from database for {delivery_date}")
+                return position
+    except ImportError:
+        pass
+
+    # Fall back to file storage
     if not POSITION_FILE.exists():
         logger.warning(f"Position file not found: {POSITION_FILE}")
         return None
@@ -298,7 +320,7 @@ def load_position(delivery_date: str) -> Optional[Dict]:
 
 def save_position(position: Dict) -> bool:
     """
-    Save position data to file.
+    Save position data to database and file.
 
     Args:
         position: Position data dict
@@ -306,19 +328,31 @@ def save_position(position: Dict) -> bool:
     Returns:
         True if saved successfully
     """
+    position["last_updated"] = datetime.now().isoformat()
+    delivery_date = position.get("delivery_date")
+
+    success = False
+
+    # Try to save to database first
     try:
-        # Ensure directory exists
+        from database import save_position_to_db, is_database_available
+        if is_database_available() and delivery_date:
+            if save_position_to_db(delivery_date, position):
+                success = True
+                logger.info(f"Position saved to database for {delivery_date}")
+    except ImportError:
+        pass
+
+    # Also save to file as backup
+    try:
         POSITION_FILE_DIR.mkdir(parents=True, exist_ok=True)
-
-        position["last_updated"] = datetime.now().isoformat()
-
         with open(POSITION_FILE, 'w') as f:
             json.dump(position, f, indent=2)
-
-        return True
+        success = True
     except Exception as e:
         logger.error(f"Error saving position file: {e}")
-        return False
+
+    return success
 
 
 def update_position_after_trade(
