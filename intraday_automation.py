@@ -87,14 +87,29 @@ def calculate_imbalances_windowed(
         contracted = interval_data["contracted"]
         forecast = new_forecast.get(interval, 0.0)
 
-        # IMPORTANT: If forecast is 0 or missing, use DA forecast as fallback
+        # IMPORTANT: If forecast is 0 or missing, look for last non-zero in history
         # This prevents the Solcast bug where near-term intervals show 0
         # because Solcast only returns FUTURE intervals
         if forecast == 0.0:
-            da_forecast = interval_data.get("da_forecast", interval_data.get("da_sold", 0.0))
-            if da_forecast > 0:
-                logger.warning(f"Interval {interval}: Solcast returned 0, using DA forecast {da_forecast:.2f} as fallback")
-                forecast = da_forecast
+            # First try: get last non-zero forecast from database history
+            try:
+                from database import get_last_nonzero_forecast
+                last_valid = get_last_nonzero_forecast(
+                    position.get("delivery_date", ""),
+                    interval
+                )
+                if last_valid and last_valid > 0:
+                    logger.warning(f"Interval {interval}: Solcast returned 0, using last valid forecast {last_valid:.2f} from history")
+                    forecast = last_valid
+            except Exception as e:
+                logger.debug(f"Could not get last non-zero forecast from DB: {e}")
+
+            # Second fallback: use DA forecast if no history available
+            if forecast == 0.0:
+                da_forecast = interval_data.get("da_forecast", interval_data.get("da_sold", 0.0))
+                if da_forecast > 0:
+                    logger.warning(f"Interval {interval}: No history found, using DA forecast {da_forecast:.2f} as final fallback")
+                    forecast = da_forecast
 
         # imbalance = contracted - forecast
         # positive: we committed more than we'll produce -> BUY

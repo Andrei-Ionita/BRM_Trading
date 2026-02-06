@@ -379,6 +379,62 @@ def get_forecast_before_interval(delivery_date: str, interval: int, minutes_befo
         return None
 
 
+def get_last_nonzero_forecast(delivery_date: str, interval: int) -> Optional[float]:
+    """
+    Get the last non-zero forecast value for an interval from history.
+
+    Searches through all forecast history entries for the delivery date
+    and returns the most recent non-zero value for the specified interval.
+
+    This is useful when Solcast returns 0 for near-term intervals -
+    we can fall back to the last valid forecast instead of DA forecast.
+
+    Args:
+        delivery_date: Date in YYYY-MM-DD format
+        interval: Interval number (1-96)
+
+    Returns:
+        Last non-zero forecast value in MW, or None if not found
+    """
+    if not is_database_available():
+        return None
+
+    import psycopg2
+
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+
+        # Get all forecasts for this date, ordered by most recent first
+        cur.execute("""
+            SELECT forecast_data, refreshed_at
+            FROM forecast_history
+            WHERE delivery_date = %s
+            ORDER BY refreshed_at DESC
+        """, (delivery_date,))
+
+        results = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        interval_key = str(interval)
+
+        # Search through history for last non-zero value
+        for forecast_data, refreshed_at in results:
+            if forecast_data and interval_key in forecast_data:
+                value = float(forecast_data[interval_key])
+                if value > 0:
+                    logger.info(f"Found last non-zero forecast for interval {interval}: {value:.2f} MW (from {refreshed_at})")
+                    return value
+
+        return None
+
+    except Exception as e:
+        logger.error(f"Failed to get last non-zero forecast: {e}")
+        return None
+
+
 # Initialize database on module load
 if DATABASE_URL:
     init_database()
