@@ -943,7 +943,8 @@
                                 <tr>
                                     <th>Interval</th>
                                     <th>Time</th>
-                                    <th>Forecast</th>
+                                    <th>DA Forecast</th>
+                                    <th>Latest Forecast</th>
                                     <th>DA Sold</th>
                                     <th>IDM Sell</th>
                                     <th>IDM Buy</th>
@@ -2050,30 +2051,37 @@
 
                 // Calculate net position: DA + IDM Sell - IDM Buy
                 let netPosition = interval.da_sold + interval.idm_sold - interval.idm_bought;
-                const forecast = interval.forecast_mw || 0;
+                const daForecast = interval.da_forecast || 0;
+                const latestForecast = interval.forecast_mw || 0;
 
                 // Fix -0.00 display bug
                 if (Math.abs(netPosition) < 0.005) netPosition = 0;
 
-                // Check if position matches forecast (within threshold)
-                const imbalance = Math.abs(netPosition - forecast);
+                // Check if position matches latest forecast (within threshold)
+                const imbalance = Math.abs(netPosition - latestForecast);
                 const isBalanced = imbalance < 0.05;  // 0.05 MW threshold
 
-                // Color coding:
-                // Green: Net Position matches Forecast (balanced)
-                // Red: Net Position doesn't match Forecast (needs trading)
-                // Yellow: Has forecast but no position yet
+                // Color coding for Net Position:
+                // Green: Net Position matches Latest Forecast (balanced)
+                // Red: Net Position doesn't match Latest Forecast (needs trading)
                 let positionColor = 'inherit';
-                if (forecast > 0 || netPosition > 0) {
+                if (latestForecast > 0 || netPosition > 0) {
                     positionColor = isBalanced ? 'var(--accent-green)' : 'var(--accent-red)';
                 }
 
-                const hasForecast = forecast > 0;
+                // Color coding for forecasts:
+                // Show difference between DA and Latest forecast
+                const forecastChanged = Math.abs(daForecast - latestForecast) > 0.05;
+                const latestForecastColor = forecastChanged ? 'var(--accent-yellow)' : 'var(--accent-green)';
+
+                const hasDaForecast = daForecast > 0;
+                const hasLatestForecast = latestForecast > 0;
 
                 row.innerHTML = `
                     <td><strong>${interval.interval}</strong></td>
                     <td>${interval.time}</td>
-                    <td style="color: ${hasForecast ? 'var(--accent-yellow)' : 'inherit'}">${forecast.toFixed(2)}</td>
+                    <td style="color: ${hasDaForecast ? 'var(--accent-blue)' : 'inherit'}">${daForecast.toFixed(2)}</td>
+                    <td style="color: ${hasLatestForecast ? latestForecastColor : 'inherit'}">${latestForecast.toFixed(2)}</td>
                     <td>${interval.da_sold.toFixed(2)}</td>
                     <td>${interval.idm_sold.toFixed(2)}</td>
                     <td>${interval.idm_bought.toFixed(2)}</td>

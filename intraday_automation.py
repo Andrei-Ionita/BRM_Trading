@@ -192,6 +192,7 @@ def get_forecast_for_date(delivery_date: str) -> Optional[Dict[int, float]]:
 def get_updated_forecast_mw(delivery_date: str) -> Optional[Dict[int, float]]:
     """
     Fetch fresh forecast and convert to MW.
+    Also saves the forecast to history database for tracking.
 
     Returns:
         Dict mapping interval (1-96) to forecast MW
@@ -220,6 +221,15 @@ def get_updated_forecast_mw(delivery_date: str) -> Optional[Dict[int, float]]:
         forecast_mw[interval] = mwh_to_mw(mwh)
 
     logger.info(f"Loaded forecast: {len(forecast_mw)} intervals, total {sum(forecast_mw.values()):.2f} MW")
+
+    # Save forecast to history database
+    try:
+        from database import save_forecast_to_history
+        save_forecast_to_history(delivery_date, forecast_mw)
+        logger.info(f"Forecast saved to history for {delivery_date}")
+    except Exception as e:
+        logger.warning(f"Could not save forecast to history: {e}")
+
     return forecast_mw
 
 

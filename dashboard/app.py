@@ -151,10 +151,11 @@ def get_interval_details(delivery_date: str) -> list:
             "time": f"{(i-1)//4:02d}:{((i-1)%4)*15:02d}",
             "status": "completed" if i < current_interval else ("active" if i == current_interval else "pending"),
             "da_sold": 0,
+            "da_forecast": 0,  # Forecast used at DA time
             "idm_sold": 0,
             "idm_bought": 0,
             "contracted": 0,
-            "forecast_mw": 0,
+            "forecast_mw": 0,  # Latest forecast
             "imbalance": 0
         }
 
@@ -162,22 +163,23 @@ def get_interval_details(delivery_date: str) -> list:
             pos_interval = position["intervals"][str(i)]
             interval_data.update({
                 "da_sold": pos_interval.get("da_sold", 0),
+                "da_forecast": pos_interval.get("da_forecast", pos_interval.get("da_sold", 0)),  # Fallback to da_sold if not set
                 "idm_sold": pos_interval.get("idm_sold", 0),
                 "idm_bought": pos_interval.get("idm_bought", 0),
                 "contracted": pos_interval.get("contracted", 0)
             })
 
-        # Get forecast value for this interval
+        # Get latest forecast value for this interval
         if forecast.get("intervals"):
             try:
                 idx = forecast["intervals"].index(i)
-                interval_data["forecast_mw"] = round(forecast["values_mw"][idx], 1)
+                interval_data["forecast_mw"] = round(forecast["values_mw"][idx], 2)
             except (ValueError, IndexError):
                 pass
 
-        # Calculate imbalance
+        # Calculate imbalance (contracted vs latest forecast)
         interval_data["imbalance"] = round(
-            interval_data["contracted"] - interval_data["forecast_mw"], 1
+            interval_data["contracted"] - interval_data["forecast_mw"], 2
         )
 
         details.append(interval_data)

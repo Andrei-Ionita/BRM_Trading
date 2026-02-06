@@ -226,9 +226,9 @@ def get_today_date() -> str:
 
 # ==================== Position File Management ====================
 
-def init_position_file(delivery_date: str, da_sold_dict: Dict[int, float]) -> Dict:
+def init_position_file(delivery_date: str, da_sold_dict: Dict[int, float], da_forecast_dict: Dict[int, float] = None) -> Dict:
     """
-    Initialize position file with DA sold quantities.
+    Initialize position file with DA sold quantities and DA forecast.
 
     Creates the position file with DA sold values and zeros for IDM fields.
     Uses database if available, falls back to file storage.
@@ -236,10 +236,15 @@ def init_position_file(delivery_date: str, da_sold_dict: Dict[int, float]) -> Di
     Args:
         delivery_date: Delivery date in YYYY-MM-DD format
         da_sold_dict: Dict mapping interval (1-96) to DA sold MW
+        da_forecast_dict: Dict mapping interval (1-96) to DA forecast MW (optional)
 
     Returns:
         The created position data
     """
+    # If no forecast dict provided, use da_sold_dict (they should be equal at DA time)
+    if da_forecast_dict is None:
+        da_forecast_dict = da_sold_dict
+
     # Build position structure
     position = {
         "delivery_date": delivery_date,
@@ -251,8 +256,10 @@ def init_position_file(delivery_date: str, da_sold_dict: Dict[int, float]) -> Di
     # Round to 1 decimal as required by DA and IDM markets
     for interval in range(1, 97):
         da_sold = da_sold_dict.get(interval, 0.0)
+        da_forecast = da_forecast_dict.get(interval, 0.0)
         position["intervals"][str(interval)] = {
             "da_sold": round(da_sold, 1),
+            "da_forecast": round(da_forecast, 2),  # Store the forecast used for DA
             "idm_sold": 0.0,
             "idm_bought": 0.0,
             "contracted": round(da_sold, 1)  # Initially equals DA sold
