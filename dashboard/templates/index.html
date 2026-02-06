@@ -2049,11 +2049,25 @@
                 const row = document.createElement('tr');
 
                 // Calculate net position: DA + IDM Sell - IDM Buy
-                const netPosition = interval.da_sold + interval.idm_sold - interval.idm_bought;
+                let netPosition = interval.da_sold + interval.idm_sold - interval.idm_bought;
                 const forecast = interval.forecast_mw || 0;
 
-                // Highlight rows with non-zero position or forecast
-                const hasPosition = netPosition > 0;
+                // Fix -0.00 display bug
+                if (Math.abs(netPosition) < 0.005) netPosition = 0;
+
+                // Check if position matches forecast (within threshold)
+                const imbalance = Math.abs(netPosition - forecast);
+                const isBalanced = imbalance < 0.05;  // 0.05 MW threshold
+
+                // Color coding:
+                // Green: Net Position matches Forecast (balanced)
+                // Red: Net Position doesn't match Forecast (needs trading)
+                // Yellow: Has forecast but no position yet
+                let positionColor = 'inherit';
+                if (forecast > 0 || netPosition > 0) {
+                    positionColor = isBalanced ? 'var(--accent-green)' : 'var(--accent-red)';
+                }
+
                 const hasForecast = forecast > 0;
 
                 row.innerHTML = `
@@ -2063,7 +2077,7 @@
                     <td>${interval.da_sold.toFixed(2)}</td>
                     <td>${interval.idm_sold.toFixed(2)}</td>
                     <td>${interval.idm_bought.toFixed(2)}</td>
-                    <td><strong style="color: ${hasPosition ? 'var(--accent-green)' : 'inherit'}">${netPosition.toFixed(2)}</strong></td>
+                    <td><strong style="color: ${positionColor}">${netPosition.toFixed(2)}</strong></td>
                 `;
 
                 tbody.appendChild(row);
