@@ -83,8 +83,18 @@ def calculate_imbalances_windowed(
         if interval_key not in position["intervals"]:
             continue
 
-        contracted = position["intervals"][interval_key]["contracted"]
+        interval_data = position["intervals"][interval_key]
+        contracted = interval_data["contracted"]
         forecast = new_forecast.get(interval, 0.0)
+
+        # IMPORTANT: If forecast is 0 or missing, use DA forecast as fallback
+        # This prevents the Solcast bug where near-term intervals show 0
+        # because Solcast only returns FUTURE intervals
+        if forecast == 0.0:
+            da_forecast = interval_data.get("da_forecast", interval_data.get("da_sold", 0.0))
+            if da_forecast > 0:
+                logger.warning(f"Interval {interval}: Solcast returned 0, using DA forecast {da_forecast:.2f} as fallback")
+                forecast = da_forecast
 
         # imbalance = contracted - forecast
         # positive: we committed more than we'll produce -> BUY
