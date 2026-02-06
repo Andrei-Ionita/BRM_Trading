@@ -612,6 +612,22 @@ async def run_intraday_iteration(
                 )
                 logger.info(f"Position updated for interval {interval}: {side} {rounded_imbalance:.1f} MW")
 
+                # Save trade to database for historical tracking
+                try:
+                    from database import save_trade
+                    save_trade(
+                        delivery_date=delivery_date,
+                        interval=interval,
+                        market="IDM",
+                        side=side,
+                        quantity_mw=rounded_imbalance,
+                        price_eur=price_eur,
+                        contract_id=contract_id,
+                        order_id=request_id
+                    )
+                except Exception as e:
+                    logger.warning(f"Could not save trade to database: {e}")
+
     return orders_placed
 
 

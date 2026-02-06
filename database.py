@@ -86,6 +86,30 @@ def init_database():
             ON forecast_history(delivery_date, refreshed_at DESC)
         """)
 
+        # Create trades table to track all DA and IDM trades
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS trades (
+                id SERIAL PRIMARY KEY,
+                delivery_date DATE NOT NULL,
+                interval_num INTEGER NOT NULL,
+                market VARCHAR(10) NOT NULL,
+                side VARCHAR(10) NOT NULL,
+                quantity_mw DECIMAL(10, 4) NOT NULL,
+                price_eur DECIMAL(10, 2),
+                contract_id VARCHAR(100),
+                order_id VARCHAR(100),
+                status VARCHAR(20) DEFAULT 'executed',
+                executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # Create index on trades for querying
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_trades_date_market
+            ON trades(delivery_date, market, interval_num)
+        """)
+
         conn.commit()
         cur.close()
         conn.close()
@@ -433,6 +457,172 @@ def get_last_nonzero_forecast(delivery_date: str, interval: int) -> Optional[flo
     except Exception as e:
         logger.error(f"Failed to get last non-zero forecast: {e}")
         return None
+
+
+def save_trade(
+    delivery_date: str,
+    interval: int,
+    market: str,
+    side: str,
+    quantity_mw: float,
+    price_eur: float = None,
+    contract_id: str = None,
+    order_id: str = None,
+    status: str = "executed"
+) -> bool:
+    """
+    Save a trade to the database.
+
+    Args:
+        delivery_date: Date in YYYY-MM-DD format
+        interval: Interval number (1-96)
+        market: 'DA' or 'IDM'
+        side: 'BUY' or 'SELL'
+        quantity_mw: Quantity in MW
+        price_eur: Price in EUR/MWh (optional)
+        contract_id: Contract/instrument ID (optional)
+        order_id: Order ID from exchange (optional)
+        status: Trade status (default: 'executed')
+
+    Returns:
+        True if successful
+    """
+    if not is_database_available():
+        return False
+
+    import psycopg2
+
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+
+        cur.execute("""
+            INSERT INTO trades (delivery_date, interval_num, market, side, quantity_mw, price_eur, contract_id, order_id, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (delivery_date, interval, market, side, quantity_mw, price_eur, contract_id, order_id, status))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        logger.info(f"Trade saved: {market} {side} {quantity_mw:.2f} MW @ {price_eur} EUR for interval {interval}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to save trade: {e}")
+        return False
+
+
+def get_trades(delivery_date: str, market: str = None) -> list:
+    """
+    Get all trades for a delivery date.
+
+    Args:
+        delivery_date: Date in YYYY-MM-DD format
+        market: Optional filter by market ('DA' or 'IDM')
+
+    Returns:
+        List of trade dictionaries
+    """
+    if not is_database_available():
+        return []
+
+    import psycopg2
+
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+
+        if market:
+            cur.execute("""
+                SELECT id, delivery_date, interval_num, market, side, quantity_mw, price_eur, contract_id, order_id, status, executed_at
+                FROM trades
+                WHERE delivery_date = %s AND market = %s
+                ORDER BY interval_num, executed_at
+            """, (delivery_date, market))
+        else:
+            cur.execute("""
+                SELECT id, delivery_date, interval_num, market, side, quantity_mw, price_eur, contract_id, order_id, status, executed_at
+                FROM trades
+                WHERE delivery_date = %s
+                ORDER BY market, interval_num, executed_at
+            """, (delivery_date,))
+
+        results = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        trades = []
+        for row in results:
+            trades.append({
+                "id": row[0],
+                "delivery_date": str(row[1]),
+                "interval": row[2],
+                "market": row[3],
+                "side": row[4],
+                "quantity_mw": float(row[5]),
+                "price_eur": float(row[6]) if row[6] else None,
+                "contract_id": row[7],
+                "order_id": row[8],
+                "status": row[9],
+                "executed_at": row[10].isoformat() if row[10] else None
+            })
+
+        return trades
+
+    except Exception as e:
+        logger.error(f"Failed to get trades: {e}")
+        return []
+
+
+def get_trade_summary(delivery_date: str) -> dict:
+    """
+    Get trade summary statistics for a delivery date.
+
+    Args:
+        delivery_date: Date in YYYY-MM-DD format
+
+    Returns:
+        Summary dictionary with totals by market and side
+    """
+    if not is_database_available():
+        return {}
+
+    import psycopg2
+
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT market, side, SUM(quantity_mw) as total_mw, COUNT(*) as trade_count, AVG(price_eur) as avg_price
+            FROM trades
+            WHERE delivery_date = %s
+            GROUP BY market, side
+            ORDER BY market, side
+        """, (delivery_date,))
+
+        results = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        summary = {
+            "DA": {"SELL": 0, "BUY": 0, "sell_count": 0, "buy_count": 0},
+            "IDM": {"SELL": 0, "BUY": 0, "sell_count": 0, "buy_count": 0}
+        }
+
+        for row in results:
+            market, side, total_mw, count, avg_price = row
+            if market in summary:
+                summary[market][side] = float(total_mw) if total_mw else 0
+                summary[market][f"{side.lower()}_count"] = count
+                summary[market][f"{side.lower()}_avg_price"] = float(avg_price) if avg_price else None
+
+        return summary
+
+    except Exception as e:
+        logger.error(f"Failed to get trade summary: {e}")
+        return {}
 
 
 # Initialize database on module load

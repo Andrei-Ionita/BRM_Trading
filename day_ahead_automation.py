@@ -497,6 +497,27 @@ async def run_da_automation(
         # Log position summary
         total_contracted = sum(data["contracted"] for data in position["intervals"].values())
         logger.info(f"Total contracted for delivery: {total_contracted:.2f} MW across all intervals")
+
+        # Step 8: Save DA trades to database
+        try:
+            from database import save_trade
+            trades_saved = 0
+            for interval, quantity_mw in da_sold_mw.items():
+                if quantity_mw > 0:
+                    save_trade(
+                        delivery_date=delivery_date,
+                        interval=interval,
+                        market="DA",
+                        side="SELL",
+                        quantity_mw=quantity_mw,
+                        price_eur=0.0,  # Price-taker (0 EUR)
+                        contract_id=generate_contract_id(delivery_date, interval),
+                        order_id=None
+                    )
+                    trades_saved += 1
+            logger.info(f"Saved {trades_saved} DA trades to database")
+        except Exception as e:
+            logger.warning(f"Could not save DA trades to database: {e}")
     else:
         logger.info("[DRY RUN] Position file not created")
 

@@ -767,6 +767,37 @@ def api_clear_alerts():
     return jsonify({"status": "cleared"})
 
 
+@app.route("/api/trades/<date>")
+def api_trades(date):
+    """Get all trades for a delivery date."""
+    try:
+        from database import get_trades, get_trade_summary
+        trades = get_trades(date)
+        summary = get_trade_summary(date)
+        return jsonify({
+            "trades": trades,
+            "summary": summary,
+            "delivery_date": date
+        })
+    except Exception as e:
+        return jsonify({"trades": [], "summary": {}, "error": str(e)})
+
+
+@app.route("/api/trades/<date>/<market>")
+def api_trades_by_market(date, market):
+    """Get trades for a specific market (DA or IDM)."""
+    try:
+        from database import get_trades
+        trades = get_trades(date, market.upper())
+        return jsonify({
+            "trades": trades,
+            "market": market.upper(),
+            "delivery_date": date
+        })
+    except Exception as e:
+        return jsonify({"trades": [], "error": str(e)})
+
+
 if __name__ == "__main__":
     # Ensure directories exist
     templates_dir = Path(__file__).parent / "templates"
