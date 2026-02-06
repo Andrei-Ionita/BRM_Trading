@@ -142,10 +142,16 @@ def get_interval_details(delivery_date: str) -> list:
     position = load_position(delivery_date)
     current_interval = get_current_cet_interval()
 
-    # Build latest forecast lookup - prefer database history
+    # Build latest forecast lookup
+    # Start with XGBoost as baseline (has all 96 intervals)
     forecast_lookup = {}
+    forecast = get_forecast_data(delivery_date)
+    if forecast.get("intervals"):
+        for idx, interval_num in enumerate(forecast["intervals"]):
+            forecast_lookup[interval_num] = round(forecast["values_mw"][idx], 2)
 
-    # Try to get latest forecast from database history first
+    # Overlay with database history for intervals that have updated Solcast data
+    # (Solcast only returns FUTURE intervals, so past intervals keep XGBoost values)
     try:
         from database import get_latest_forecast_from_history
         latest = get_latest_forecast_from_history(delivery_date)
@@ -154,13 +160,6 @@ def get_interval_details(delivery_date: str) -> list:
                 forecast_lookup[int(interval_str)] = round(float(value), 2)
     except Exception:
         pass
-
-    # Fall back to XGBoost file if no database forecast
-    if not forecast_lookup:
-        forecast = get_forecast_data(delivery_date)
-        if forecast.get("intervals"):
-            for idx, interval_num in enumerate(forecast["intervals"]):
-                forecast_lookup[interval_num] = round(forecast["values_mw"][idx], 2)
 
     details = []
 
@@ -257,10 +256,15 @@ def api_chart(date):
 
     labels = [f"{(i-1)//4:02d}:{((i-1)%4)*15:02d}" for i in range(1, 97)]
 
-    # Build latest forecast lookup - prefer database history
+    # Build latest forecast lookup
+    # Start with XGBoost as baseline (has all 96 intervals)
     forecast_lookup = {}
+    forecast = get_forecast_data(date)
+    if forecast.get("intervals"):
+        for idx, interval_num in enumerate(forecast["intervals"]):
+            forecast_lookup[interval_num] = round(forecast["values_mw"][idx], 2)
 
-    # Try to get latest forecast from database history first
+    # Overlay with database history for intervals that have updated Solcast data
     try:
         from database import get_latest_forecast_from_history
         latest = get_latest_forecast_from_history(date)
@@ -269,13 +273,6 @@ def api_chart(date):
                 forecast_lookup[int(interval_str)] = round(float(value), 2)
     except Exception:
         pass
-
-    # Fall back to XGBoost file if no database forecast
-    if not forecast_lookup:
-        forecast = get_forecast_data(date)
-        if forecast.get("intervals"):
-            for idx, interval_num in enumerate(forecast["intervals"]):
-                forecast_lookup[interval_num] = round(forecast["values_mw"][idx], 2)
 
     contracted = []
     da_sold = []
@@ -641,10 +638,15 @@ def api_idm_activity(date):
     total_sold = 0
     total_bought = 0
 
-    # Build forecast lookup - prefer latest forecast from database history
+    # Build forecast lookup
+    # Start with XGBoost as baseline (has all 96 intervals)
     forecast_lookup = {}
+    forecast = get_forecast_data(date)
+    if forecast.get("intervals"):
+        for idx, interval_num in enumerate(forecast["intervals"]):
+            forecast_lookup[interval_num] = round(forecast["values_mw"][idx], 2)
 
-    # Try to get latest forecast from database history first
+    # Overlay with database history for intervals that have updated Solcast data
     try:
         from database import get_latest_forecast_from_history
         latest = get_latest_forecast_from_history(date)
@@ -653,13 +655,6 @@ def api_idm_activity(date):
                 forecast_lookup[int(interval_str)] = round(float(value), 2)
     except Exception:
         pass
-
-    # Fall back to XGBoost file if no database forecast
-    if not forecast_lookup:
-        forecast = get_forecast_data(date)
-        if forecast.get("intervals"):
-            for idx, interval_num in enumerate(forecast["intervals"]):
-                forecast_lookup[interval_num] = round(forecast["values_mw"][idx], 2)
 
     for interval_num in range(1, 97):
         interval_data = intervals.get(str(interval_num), {})
