@@ -701,6 +701,64 @@ def api_idm_activity(date):
     })
 
 
+@app.route("/api/forecast/debug/<date>")
+def api_forecast_debug(date):
+    """Debug endpoint to check forecast sources and database status."""
+    result = {
+        "date": date,
+        "database_available": False,
+        "database_forecast": None,
+        "database_refreshed_at": None,
+        "xgboost_forecast": None,
+        "position_da_forecast": None,
+        "sample_intervals": {}
+    }
+
+    # Check database availability and get latest forecast
+    try:
+        from database import is_database_available, get_latest_forecast_from_history
+        result["database_available"] = is_database_available()
+
+        if result["database_available"]:
+            latest = get_latest_forecast_from_history(date)
+            if latest:
+                result["database_forecast"] = f"{len(latest.get('forecast_data', {}))} intervals"
+                result["database_refreshed_at"] = latest.get("refreshed_at")
+                # Sample a few intervals
+                forecast_data = latest.get("forecast_data", {})
+                for interval in ["50", "55", "60", "65"]:
+                    if interval in forecast_data:
+                        result["sample_intervals"][f"db_interval_{interval}"] = forecast_data[interval]
+    except Exception as e:
+        result["database_error"] = str(e)
+
+    # Check XGBoost file
+    try:
+        forecast = get_forecast_data(date)
+        if forecast.get("intervals"):
+            result["xgboost_forecast"] = f"{len(forecast['intervals'])} intervals"
+            # Sample intervals
+            for i, interval_num in enumerate(forecast["intervals"]):
+                if interval_num in [50, 55, 60, 65]:
+                    result["sample_intervals"][f"xgb_interval_{interval_num}"] = round(forecast["values_mw"][i], 2)
+    except Exception as e:
+        result["xgboost_error"] = str(e)
+
+    # Check position file for DA forecast
+    try:
+        position = load_position(date)
+        if position:
+            result["position_da_forecast"] = "available"
+            for interval in ["50", "55", "60", "65"]:
+                if interval in position.get("intervals", {}):
+                    da_forecast = position["intervals"][interval].get("da_forecast", 0)
+                    result["sample_intervals"][f"da_interval_{interval}"] = da_forecast
+    except Exception as e:
+        result["position_error"] = str(e)
+
+    return jsonify(result)
+
+
 @app.route("/api/alerts")
 def api_alerts():
     """Get recent alerts."""
