@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 # Run DA at 12:00 EET (11:00 CET) - 1 hour buffer before gate closure
 DA_RUN_HOUR = 11  # 11:00 CET = 12:00 EET (Romania time)
 DA_RUN_MINUTE = 0
-IDM_INTERVAL_MINUTES = 15  # Run IDM every 15 minutes during delivery day
+IDM_INTERVAL_MINUTES = 30  # Run IDM every 30 minutes - gives buffer for Solcast data availability
 
 # Global shutdown flag
 shutdown_requested = False
