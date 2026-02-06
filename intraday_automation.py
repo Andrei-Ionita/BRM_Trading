@@ -84,16 +84,7 @@ def calculate_imbalances_windowed(
             continue
 
         contracted = position["intervals"][interval_key]["contracted"]
-        da_sold = position["intervals"][interval_key].get("da_sold", 0)
         forecast = new_forecast.get(interval, 0.0)
-
-        # GUARDRAIL: If we have a position (DA sold > 0) but new forecast is 0,
-        # this is likely because Solcast doesn't return data for near-term intervals.
-        # In this case, assume forecast equals what we already contracted (no change).
-        if da_sold > 0 and forecast == 0:
-            logger.warning(f"Interval {interval}: Forecast is 0 but DA sold {da_sold:.1f} MW. "
-                          f"Likely missing Solcast data - skipping to avoid false BUY.")
-            continue
 
         # imbalance = contracted - forecast
         # positive: we committed more than we'll produce -> BUY
