@@ -140,10 +140,29 @@ def get_position_summary(delivery_date: str) -> dict:
 def get_interval_details(delivery_date: str) -> list:
     """Get detailed interval data for table view."""
     position = load_position(delivery_date)
-    forecast = get_forecast_data(delivery_date)
+    current_interval = get_current_cet_interval()
+
+    # Build latest forecast lookup - prefer database history
+    forecast_lookup = {}
+
+    # Try to get latest forecast from database history first
+    try:
+        from database import get_latest_forecast_from_history
+        latest = get_latest_forecast_from_history(delivery_date)
+        if latest and latest.get("forecast_data"):
+            for interval_str, value in latest["forecast_data"].items():
+                forecast_lookup[int(interval_str)] = round(float(value), 2)
+    except Exception:
+        pass
+
+    # Fall back to XGBoost file if no database forecast
+    if not forecast_lookup:
+        forecast = get_forecast_data(delivery_date)
+        if forecast.get("intervals"):
+            for idx, interval_num in enumerate(forecast["intervals"]):
+                forecast_lookup[interval_num] = round(forecast["values_mw"][idx], 2)
 
     details = []
-    current_interval = get_current_cet_interval()
 
     for i in range(1, 97):
         interval_data = {
@@ -170,12 +189,7 @@ def get_interval_details(delivery_date: str) -> list:
             })
 
         # Get latest forecast value for this interval
-        if forecast.get("intervals"):
-            try:
-                idx = forecast["intervals"].index(i)
-                interval_data["forecast_mw"] = round(forecast["values_mw"][idx], 2)
-            except (ValueError, IndexError):
-                pass
+        interval_data["forecast_mw"] = forecast_lookup.get(i, 0)
 
         # Calculate imbalance (contracted vs latest forecast)
         interval_data["imbalance"] = round(
@@ -240,9 +254,28 @@ def api_intervals(date):
 def api_chart(date):
     """Get chart data for visualization."""
     position = load_position(date)
-    forecast = get_forecast_data(date)
 
     labels = [f"{(i-1)//4:02d}:{((i-1)%4)*15:02d}" for i in range(1, 97)]
+
+    # Build latest forecast lookup - prefer database history
+    forecast_lookup = {}
+
+    # Try to get latest forecast from database history first
+    try:
+        from database import get_latest_forecast_from_history
+        latest = get_latest_forecast_from_history(date)
+        if latest and latest.get("forecast_data"):
+            for interval_str, value in latest["forecast_data"].items():
+                forecast_lookup[int(interval_str)] = round(float(value), 2)
+    except Exception:
+        pass
+
+    # Fall back to XGBoost file if no database forecast
+    if not forecast_lookup:
+        forecast = get_forecast_data(date)
+        if forecast.get("intervals"):
+            for idx, interval_num in enumerate(forecast["intervals"]):
+                forecast_lookup[interval_num] = round(forecast["values_mw"][idx], 2)
 
     contracted = []
     da_sold = []
@@ -256,11 +289,7 @@ def api_chart(date):
             contracted.append(0)
             da_sold.append(0)
 
-        if forecast.get("intervals") and i in forecast["intervals"]:
-            idx = forecast["intervals"].index(i)
-            forecast_mw.append(round(forecast["values_mw"][idx], 1))
-        else:
-            forecast_mw.append(0)
+        forecast_mw.append(forecast_lookup.get(i, 0))
 
     return jsonify({
         "labels": labels,
@@ -567,7 +596,6 @@ def api_da_activity(date):
 def api_idm_activity(date):
     """Get IDM trading activity for a date."""
     position = load_position(date)
-    forecast = get_forecast_data(date)
 
     if not position:
         return jsonify({"trades": [], "summary": {"total_sold": 0, "total_bought": 0}})
@@ -577,11 +605,25 @@ def api_idm_activity(date):
     total_sold = 0
     total_bought = 0
 
-    # Build forecast lookup
+    # Build forecast lookup - prefer latest forecast from database history
     forecast_lookup = {}
-    if forecast.get("intervals"):
-        for idx, interval_num in enumerate(forecast["intervals"]):
-            forecast_lookup[interval_num] = round(forecast["values_mw"][idx], 2)
+
+    # Try to get latest forecast from database history first
+    try:
+        from database import get_latest_forecast_from_history
+        latest = get_latest_forecast_from_history(date)
+        if latest and latest.get("forecast_data"):
+            for interval_str, value in latest["forecast_data"].items():
+                forecast_lookup[int(interval_str)] = round(float(value), 2)
+    except Exception:
+        pass
+
+    # Fall back to XGBoost file if no database forecast
+    if not forecast_lookup:
+        forecast = get_forecast_data(date)
+        if forecast.get("intervals"):
+            for idx, interval_num in enumerate(forecast["intervals"]):
+                forecast_lookup[interval_num] = round(forecast["values_mw"][idx], 2)
 
     for interval_num in range(1, 97):
         interval_data = intervals.get(str(interval_num), {})
