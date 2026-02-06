@@ -447,9 +447,12 @@ def api_run_intraday():
 
 @app.route("/api/run/forecast", methods=["POST"])
 def api_run_forecast():
-    """Trigger forecast fetch and prediction."""
+    """Trigger forecast fetch and prediction, save to history database."""
+    data = request.json or {}
+    date = data.get("date", get_today_date())
+
     dashboard_state["forecast_status"] = "running"
-    add_log("Starting forecast fetch...", "INFO")
+    add_log(f"Starting forecast fetch for {date}...", "INFO")
 
     def run_forecast():
         import traceback
@@ -472,6 +475,39 @@ def api_run_forecast():
             predicting_exporting_Astro_15min(0, 24, 0)
             add_log("Prediction model completed successfully", "SUCCESS")
 
+            # Save forecast to database history
+            add_log("Saving forecast to database history...", "INFO")
+            try:
+                import pandas as pd
+                from datetime import datetime as dt
+
+                results_path = bot_dir / "Astro" / "Results_Production_Astro_xgb_15min.xlsx"
+                df = pd.read_excel(results_path)
+                df["Data"] = pd.to_datetime(df["Data"])
+
+                target_date = dt.strptime(date, "%Y-%m-%d")
+                df_date = df[df["Data"].dt.date == target_date.date()]
+
+                if not df_date.empty:
+                    # Build forecast dict (convert MWh to MW)
+                    forecast_mw = {}
+                    for _, row in df_date.iterrows():
+                        interval = int(row["Interval"])
+                        mwh = float(row["Prediction"])
+                        forecast_mw[interval] = round(mwh * 4, 2)  # MWh to MW
+
+                    # Save to database
+                    from database import save_forecast_to_history
+                    if save_forecast_to_history(date, forecast_mw):
+                        add_log(f"Forecast saved to history: {len(forecast_mw)} intervals", "SUCCESS")
+                    else:
+                        add_log("Failed to save forecast to database (DB unavailable?)", "WARNING")
+                else:
+                    add_log(f"No forecast data for {date} to save", "WARNING")
+
+            except Exception as e:
+                add_log(f"Error saving forecast to history: {e}", "WARNING")
+
             dashboard_state["forecast_status"] = "completed"
 
         except Exception as e:
@@ -483,7 +519,7 @@ def api_run_forecast():
     thread = threading.Thread(target=run_forecast)
     thread.start()
 
-    return jsonify({"status": "started"})
+    return jsonify({"status": "started", "date": date})
 
 
 @app.route("/api/forecast/status")

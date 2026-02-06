@@ -1712,10 +1712,14 @@
         async function triggerForecastFetch(btn) {
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner"></span> Fetching...';
-            showToast('Fetching new forecast from Solcast...', 'info');
+            showToast(`Fetching new forecast for ${currentDate}...`, 'info');
 
             try {
-                await fetch('/api/run/forecast', { method: 'POST' });
+                await fetch('/api/run/forecast', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: currentDate })
+                });
 
                 // Poll for completion
                 const pollInterval = setInterval(async () => {
