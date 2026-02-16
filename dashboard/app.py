@@ -150,14 +150,14 @@ def get_interval_details(delivery_date: str) -> list:
         for idx, interval_num in enumerate(forecast["intervals"]):
             forecast_lookup[interval_num] = round(forecast["values_mw"][idx], 2)
 
-    # Overlay with database history for intervals that have updated Solcast data
-    # (Solcast only returns FUTURE intervals, so past intervals keep XGBoost values)
+    # Overlay with database history: use the best (last non-zero) forecast for each interval.
+    # This ensures past intervals show the last valid forecast (used for IDM adjustments)
+    # instead of 0 when Solcast no longer returns data for them.
     try:
-        from database import get_latest_forecast_from_history
-        latest = get_latest_forecast_from_history(delivery_date)
-        if latest and latest.get("forecast_data"):
-            for interval_str, value in latest["forecast_data"].items():
-                forecast_lookup[int(interval_str)] = round(float(value), 2)
+        from database import get_last_forecast_per_interval
+        last_forecasts = get_last_forecast_per_interval(delivery_date)
+        for interval_num, value in last_forecasts.items():
+            forecast_lookup[interval_num] = value
     except Exception:
         pass
 
@@ -264,13 +264,12 @@ def api_chart(date):
         for idx, interval_num in enumerate(forecast["intervals"]):
             forecast_lookup[interval_num] = round(forecast["values_mw"][idx], 2)
 
-    # Overlay with database history for intervals that have updated Solcast data
+    # Overlay with database history: use the best (last non-zero) forecast for each interval.
     try:
-        from database import get_latest_forecast_from_history
-        latest = get_latest_forecast_from_history(date)
-        if latest and latest.get("forecast_data"):
-            for interval_str, value in latest["forecast_data"].items():
-                forecast_lookup[int(interval_str)] = round(float(value), 2)
+        from database import get_last_forecast_per_interval
+        last_forecasts = get_last_forecast_per_interval(date)
+        for interval_num, value in last_forecasts.items():
+            forecast_lookup[interval_num] = value
     except Exception:
         pass
 
@@ -646,13 +645,14 @@ def api_idm_activity(date):
         for idx, interval_num in enumerate(forecast["intervals"]):
             forecast_lookup[interval_num] = round(forecast["values_mw"][idx], 2)
 
-    # Overlay with database history for intervals that have updated Solcast data
+    # Overlay with database history: use the best (last non-zero) forecast for each interval.
+    # This ensures past intervals show the last valid forecast (used for IDM adjustments)
+    # instead of 0 when Solcast no longer returns data for them.
     try:
-        from database import get_latest_forecast_from_history
-        latest = get_latest_forecast_from_history(date)
-        if latest and latest.get("forecast_data"):
-            for interval_str, value in latest["forecast_data"].items():
-                forecast_lookup[int(interval_str)] = round(float(value), 2)
+        from database import get_last_forecast_per_interval
+        last_forecasts = get_last_forecast_per_interval(date)
+        for interval_num, value in last_forecasts.items():
+            forecast_lookup[interval_num] = value
     except Exception:
         pass
 

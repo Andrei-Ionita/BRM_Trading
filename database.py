@@ -459,6 +459,61 @@ def get_last_nonzero_forecast(delivery_date: str, interval: int) -> Optional[flo
         return None
 
 
+def get_last_forecast_per_interval(delivery_date: str) -> Dict[int, float]:
+    """
+    Get the last stored forecast for every interval from history.
+
+    Goes through all forecast history entries (newest first) and for each
+    interval returns the value from the most recent entry that contains it.
+    This ensures past intervals show the forecast that was active when
+    IDM adjustments were made.
+
+    Args:
+        delivery_date: Date in YYYY-MM-DD format
+
+    Returns:
+        Dict mapping interval number to forecast MW value
+    """
+    if not is_database_available():
+        return {}
+
+    import psycopg2
+
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+
+        # Get all forecasts for this date, ordered by most recent first
+        cur.execute("""
+            SELECT forecast_data
+            FROM forecast_history
+            WHERE delivery_date = %s
+            ORDER BY refreshed_at DESC
+        """, (delivery_date,))
+
+        results = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        merged = {}
+
+        # For each history entry (newest first), fill in intervals we haven't seen yet
+        for (forecast_data,) in results:
+            if not forecast_data:
+                continue
+            for interval_str, value in forecast_data.items():
+                interval_num = int(interval_str)
+                if interval_num not in merged:
+                    merged[interval_num] = round(float(value), 2)
+
+        return merged
+
+    except Exception as e:
+        logger.error(f"Failed to get last forecast per interval: {e}")
+        return {}
+
+
 def save_trade(
     delivery_date: str,
     interval: int,
